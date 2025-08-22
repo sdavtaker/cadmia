@@ -14,7 +14,7 @@ This project goal is replace CD++ with a more flexible and better performant imp
 
 ## Quick start
 ### Requirements
-* A C++17 compliant compiler.
+* A C++23 compliant compiler.
 
 ### Install
 * The library is headers only. Then, it is enough to put the include directory in the path the compiler looks up for them.

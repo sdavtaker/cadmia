@@ -58,5 +58,5 @@ struct devs_atomic_model_missing_external_function {
 };
 
 int main() {
-    cadmium::concept::devs_atomic_model_assert<devs_atomic_model_missing_external_function>();
+    cadmium::old_concept::devs_atomic_model_assert<devs_atomic_model_missing_external_function>();
 }

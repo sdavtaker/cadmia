@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6.1)
+cmake_minimum_required(VERSION 3.28)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
 project(
     cadmium
@@ -28,7 +28,6 @@ if (OPENMP_FOUND)
 endif()
 
 add_library(cadmium INTERFACE)
-
 add_library(cadmium::cadmium ALIAS cadmium)
 
 target_include_directories(cadmium INTERFACE
@@ -36,23 +35,16 @@ target_include_directories(cadmium INTERFACE
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         )
 
-target_compile_features(cadmium INTERFACE cxx_std_17)
+target_compile_features(cadmium INTERFACE cxx_std_23)
 
+# Enable C++23 standard globally
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories(include ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/json/single_include )
-add_subdirectory(json)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall")
-
-# Check for standard to use
-check_cxx_compiler_flag(-std=c++17 HAVE_FLAG_STD_CXX17)
-if (HAVE_FLAG_STD_CXX17)
-    message(STATUS "Using C++17 flag")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17")
-else ()
-    message(STATUS "Using C++1z flag")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++1z")
-endif ()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
 
@@ -137,14 +129,6 @@ endforeach (exec_type)
 
 # PDEVS Examples
 FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/pdevs/main-*.cpp)
-foreach (exampleSrc ${Examples})
-    get_filename_component(exampleName ${exampleSrc} NAME_WE)
-    add_executable(${exampleName} ${exampleSrc})
-    target_link_libraries(${exampleName} PUBLIC ${Boost_LIBRARIES})
-endforeach (exampleSrc)
-
-# Cell-DEVS Examples
-FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/celldevs/*/main-*.cpp)
 foreach (exampleSrc ${Examples})
     get_filename_component(exampleName ${exampleSrc} NAME_WE)
     add_executable(${exampleName} ${exampleSrc})

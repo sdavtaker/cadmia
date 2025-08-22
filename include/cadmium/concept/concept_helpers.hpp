@@ -30,7 +30,7 @@
 #include<tuple>
 
 namespace cadmium {
-    namespace concept {
+    namespace old_concept {
 
 
         template<template<typename> class MODEL>

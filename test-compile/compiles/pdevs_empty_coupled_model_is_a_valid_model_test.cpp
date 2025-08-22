@@ -32,6 +32,6 @@
 
 
 int main(){
-    cadmium::concept::pdevs::coupled_model_assert<pdevs_empty_coupled_model::type>();
+    cadmium::old_concept::pdevs::coupled_model_assert<pdevs_empty_coupled_model::type>();
     return 0;
 }
