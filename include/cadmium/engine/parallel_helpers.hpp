@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-2-Clause
 /**
  * Copyright (c) 2020, Guillermo G. Trabes
  * Carleton University, Universidad Nacional de San Luis

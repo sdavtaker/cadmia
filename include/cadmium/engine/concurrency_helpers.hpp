@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-2-Clause
 /**
  * Copyright (c) 2019, Juan Lanuza
  * Carleton University, Universidad de Buenos Aires

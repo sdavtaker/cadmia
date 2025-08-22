@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-2-Clause
 /**
  * 2021 - Ezequiel Pecker-Marcosig
  * Universidad de Buenos Aires

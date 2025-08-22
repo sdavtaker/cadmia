@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-2-Clause
 //THIS NEEDS TO BE REFACTORED
 //THERE MUST BE A BETTER WAY
 

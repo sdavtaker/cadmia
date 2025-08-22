@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-2-Clause
 /**
  * Copyright (c) 2013-2017, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
