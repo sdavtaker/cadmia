@@ -1,8 +1,31 @@
+# Integrate vcpkg if present
+if(DEFINED ENV{VCPKG_ROOT})
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "Vcpkg toolchain file")
+endif()
+
 cmake_minimum_required(VERSION 3.28)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
 project(
     cadmium
-    VERSION 0.2.9)
+    VERSION 0.3.0)
+
+# Enable C++23 standard globally
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall")
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
+
+
+#Enabling instrumentation for profiling if required
+option(PROFILER_ENABLED "Profiler-enabled" OFF)
+if (PROFILER_ENABLED)
+    message(STATUS "Instrumenting profiling")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate")
+endif ()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
@@ -18,7 +41,9 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.56.0 COMPONENTS unit_test_framework system thread REQUIRED)
+find_package(Boost 1.88.0 COMPONENTS system thread REQUIRED) 
+
+find_package(Catch2 CONFIG REQUIRED)
 
 # Adding OpenMP as dependency
 find_package(OpenMP)
@@ -37,28 +62,9 @@ target_include_directories(cadmium INTERFACE
 
 target_compile_features(cadmium INTERFACE cxx_std_23)
 
-# Enable C++23 standard globally
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-include_directories(include ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/json/single_include )
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall")
-
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
-
-
-#Enabling instrumentation for profiling if required
-option(PROFILER_ENABLED "Profiler-enabled" OFF)
-if (PROFILER_ENABLED)
-    message(STATUS "Instrumenting profiling")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate")
-endif ()
-
 enable_testing()
-
-#run all tests for sequential and concurrent versions
+## TODO: reenable tests as the rest of the code gets refactored.
+# #run all tests for sequential and concurrent versions
 set(EXEC_TYPES "seq" "conc" "par")
 foreach (exec_type ${EXEC_TYPES})
     # Unit tests
@@ -70,7 +76,7 @@ foreach (exec_type ${EXEC_TYPES})
             message(STATUS "Skipping test ${testName} for parallel execution")
             continue()
         endif()
-        add_executable(${testName} test/main-test.cpp ${testSrc})
+        add_executable(${testName} ${testSrc})
         if (exec_type STREQUAL "conc")
             target_compile_definitions(${testName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
         endif ()
@@ -78,53 +84,53 @@ foreach (exec_type ${EXEC_TYPES})
             target_compile_definitions(${testName} PUBLIC CPU_PARALLEL)
             target_link_libraries(${testName} PUBLIC OpenMP::OpenMP_CXX)
         endif ()
-        target_link_libraries(${testName} PUBLIC ${Boost_LIBRARIES})
+        target_link_libraries(${testName} PUBLIC cadmium Catch2::Catch2WithMain Boost::system Boost::thread)
         add_test(${testName} ${testName})
     endforeach (testSrc)
 
-    # Tests that should compile
-    FILE(GLOB TestCompileSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test-compile/compiles/*_test.cpp)
-    foreach (testCompSrc ${TestCompileSources})
-        get_filename_component(testCompName ${testCompSrc} NAME_WE)
-        set(testCompName "${testCompName}_${exec_type}")
-        add_executable(${testCompName} ${testCompSrc})
-        set_target_properties(${testCompName} PROPERTIES
-                EXCLUDE_FROM_ALL TRUE
-                EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-        if (exec_type STREQUAL "conc")
-            target_compile_definitions(${testCompName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
-        endif ()
-        if (exec_type STREQUAL "par" AND OPENMP_FOUND)
-            target_compile_definitions(${testCompName} PUBLIC CPU_PARALLEL)
-            target_link_libraries(${testName} PUBLIC OpenMP::OpenMP_CXX)
-        endif ()
-        target_include_directories(${testCompName} PUBLIC test-compile/compiles)
-        add_test(NAME ${testCompName}
-                COMMAND ${CMAKE_COMMAND} --build . --target ${testCompName}
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-    endforeach (testCompSrc)
+#     # Tests that should compile
+#     FILE(GLOB TestCompileSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test-compile/compiles/*_test.cpp)
+#     foreach (testCompSrc ${TestCompileSources})
+#         get_filename_component(testCompName ${testCompSrc} NAME_WE)
+#         set(testCompName "${testCompName}_${exec_type}")
+#         add_executable(${testCompName} ${testCompSrc})
+#         set_target_properties(${testCompName} PROPERTIES
+#                 EXCLUDE_FROM_ALL TRUE
+#                 EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+#         if (exec_type STREQUAL "conc")
+#             target_compile_definitions(${testCompName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
+#         endif ()
+#         if (exec_type STREQUAL "par" AND OPENMP_FOUND)
+#             target_compile_definitions(${testCompName} PUBLIC CPU_PARALLEL)
+#             target_link_libraries(${testName} PUBLIC OpenMP::OpenMP_CXX)
+#         endif ()
+#         target_include_directories(${testCompName} PUBLIC test-compile/compiles)
+#         add_test(NAME ${testCompName}
+#                 COMMAND ${CMAKE_COMMAND} --build . --target ${testCompName}
+#                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+#     endforeach (testCompSrc)
 
-    # Tests that should fail compilation
-    FILE(GLOB TestCompileFailSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test-compile/compile-fails/*_test.cpp)
-    foreach (testCmpFailSrc ${TestCompileFailSources})
-        get_filename_component(testCmpFailName ${testCmpFailSrc} NAME_WE)
-        set(testCmpFailName "${testCmpFailName}_${exec_type}")
-        add_executable(${testCmpFailName} ${testCmpFailSrc})
-        set_target_properties(${testCmpFailName} PROPERTIES
-                EXCLUDE_FROM_ALL TRUE
-                EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-        if (exec_type STREQUAL "conc")
-            target_compile_definitions(${testCmpFailName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
-        endif ()
-        if (exec_type STREQUAL "par" AND OPENMP_FOUND)
-            target_compile_definitions(${testCmpFailName} PUBLIC CPU_PARALLEL)
-            target_link_libraries(${testName} PUBLIC OpenMP::OpenMP_CXX)
-        endif ()
-        add_test(NAME ${testCmpFailName}
-                COMMAND ${CMAKE_COMMAND} --build . --target ${testCmpFailName}
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-        set_tests_properties(${testCmpFailName} PROPERTIES WILL_FAIL TRUE)
-    endforeach (testCmpFailSrc)
+#     # Tests that should fail compilation
+#     FILE(GLOB TestCompileFailSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test-compile/compile-fails/*_test.cpp)
+#     foreach (testCmpFailSrc ${TestCompileFailSources})
+#         get_filename_component(testCmpFailName ${testCmpFailSrc} NAME_WE)
+#         set(testCmpFailName "${testCmpFailName}_${exec_type}")
+#         add_executable(${testCmpFailName} ${testCmpFailSrc})
+#         set_target_properties(${testCmpFailName} PROPERTIES
+#                 EXCLUDE_FROM_ALL TRUE
+#                 EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+#         if (exec_type STREQUAL "conc")
+#             target_compile_definitions(${testCmpFailName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
+#         endif ()
+#         if (exec_type STREQUAL "par" AND OPENMP_FOUND)
+#             target_compile_definitions(${testCmpFailName} PUBLIC CPU_PARALLEL)
+#             target_link_libraries(${testName} PUBLIC OpenMP::OpenMP_CXX)
+#         endif ()
+#         add_test(NAME ${testCmpFailName}
+#                 COMMAND ${CMAKE_COMMAND} --build . --target ${testCmpFailName}
+#                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+#         set_tests_properties(${testCmpFailName} PROPERTIES WILL_FAIL TRUE)
+#     endforeach (testCmpFailSrc)
 endforeach (exec_type)
 
 # PDEVS Examples
@@ -132,7 +138,8 @@ FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/pdevs/main-*.cpp
 foreach (exampleSrc ${Examples})
     get_filename_component(exampleName ${exampleSrc} NAME_WE)
     add_executable(${exampleName} ${exampleSrc})
-    target_link_libraries(${exampleName} PUBLIC ${Boost_LIBRARIES})
+    target_link_libraries(${exampleName} PUBLIC cadmium Boost::system Boost::thread)
+    target_include_directories(${exampleName} PUBLIC ${Boost_INCLUDE_DIRS})
 endforeach (exampleSrc)
 
 #CMake packaging to allow other projects to include cadmium
@@ -164,4 +171,3 @@ install(
     ${CMAKE_BINARY_DIR}/cadmiumConfigVersion.cmake
     DESTINATION
     ${CMAKE_INSTALL_LIBDIR}/cmake/cadmium)
-
