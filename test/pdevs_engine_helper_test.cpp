@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2017, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -26,8 +26,7 @@
  */
 
 
-#define BOOST_TEST_DYN_LINK
-#include <boost/test/unit_test.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <cadmium/basic_model/pdevs/accumulator.hpp>
 #include <cadmium/engine/pdevs_simulator.hpp>
 #include <cadmium/engine/pdevs_coordinator.hpp>
@@ -37,7 +36,6 @@
 /**
   * This test is for some common helper functions used by coordinators and simulators
   */
-BOOST_AUTO_TEST_SUITE( pdevs_engine_helpers_test_suite )
 
 ////Definition of an accumulator of floats
 template<typename TIME>
@@ -47,7 +45,7 @@ using floating_accumulator_defs=cadmium::basic_models::pdevs::accumulator_defs<f
 using simulator_of_floating_accumulator=cadmium::engine::simulator<floating_accumulator, float, cadmium::logger::not_logger>;
 //Definition of a tuple with one simulator
 using tuple_sim_accum=std::tuple<simulator_of_floating_accumulator>;
-BOOST_AUTO_TEST_CASE(get_engine_by_model__one_element_test){
+TEST_CASE("get_engine_by_model one element test", "[engine_helpers]") {
     tuple_sim_accum st;
     cadmium::engine::get_engine_by_model<floating_accumulator<float>, tuple_sim_accum>(st);
 }
@@ -83,15 +81,12 @@ using simulator_of_gen_a=cadmium::engine::simulator<floating_generator_a, float,
 using simulator_of_gen_b=cadmium::engine::simulator<floating_generator_b, float, cadmium::logger::not_logger>;
 //Definition of a tuple with one simulator
 using tuple_sim_gens=std::tuple<simulator_of_gen_a, simulator_of_gen_b>;
-BOOST_AUTO_TEST_CASE(get_engine_by_model_two_elements_get_first_test){
+TEST_CASE("get_engine_by_model two elements get first test", "[engine_helpers]") {
     tuple_sim_gens st;
     auto eng_a=cadmium::engine::get_engine_by_model<floating_generator_a<float>, tuple_sim_gens>(st);
 }
 
-BOOST_AUTO_TEST_CASE(get_engine_by_model_two_elements_get_last_test){
+TEST_CASE("get_engine_by_model two elements get last test", "[engine_helpers]") {
     tuple_sim_gens st;
     auto eng_b=cadmium::engine::get_engine_by_model<floating_generator_b<float>, tuple_sim_gens>(st);
 }
-
-
-BOOST_AUTO_TEST_SUITE_END()

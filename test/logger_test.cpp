@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2017, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -26,78 +26,72 @@
  */
 
 
-#define BOOST_TEST_DYN_LINK
+#include <catch2/catch_test_macros.hpp>
 #include <sstream>
-#include<boost/test/unit_test.hpp>
 #include <cadmium/logger/logger.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
 namespace {
-    std::ostringstream oss;
-    std::ostringstream oss2;
+    std::ostringstream main_stream;
+    std::ostringstream secondary_stream;
 
-    struct oss_test_sink_provider{
-        static std::ostream& sink(){
-            return oss;
-        }
+    struct main_sink {
+        static std::ostream& sink() { return main_stream; }
     };
 
-    struct oss_test_second_sink_provider{
-        static std::ostream& sink(){
-            return oss2;
-        }
+    struct secondary_sink {
+        static std::ostream& sink() { return secondary_stream; }
     };
-
 }
 
+TEST_CASE("Logger does not output for debug log with info logger", "[logger]") {
+    main_stream.str("");
 
-BOOST_AUTO_TEST_SUITE( loggers_test_suite )
+    cadmium::logger::logger<
+        cadmium::logger::logger_info,
+        cadmium::logger::formatter<float>,
+        main_sink
+    > logger;
 
-BOOST_AUTO_TEST_CASE( log_nothing_test )
-{
-    oss.str("");
+    logger.log<cadmium::logger::logger_debug, cadmium::logger::run_info>("should not appear");
 
-    //logger definition
-    cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::formatter<float>, oss_test_sink_provider> l;
-
-    //log usage in different source
-    l.log<cadmium::logger::logger_debug, cadmium::logger::run_info>("nothing to show");
-
-    BOOST_CHECK(oss.str().empty());
+    REQUIRE(main_stream.str().empty());
 }
 
-BOOST_AUTO_TEST_CASE( simple_logger_logs_test )
-{
-    oss.str("");
+TEST_CASE("Logger outputs info log correctly", "[logger]") {
+    main_stream.str("");
 
-    //logger definition
-    cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::formatter<float>, oss_test_sink_provider> l;
+    cadmium::logger::logger<
+        cadmium::logger::logger_info,
+        cadmium::logger::formatter<float>,
+        main_sink
+    > logger;
 
-    //log usage in different source
-    l.log<cadmium::logger::logger_info, cadmium::logger::run_info>("something to show");
+    logger.log<cadmium::logger::logger_info, cadmium::logger::run_info>("visible message");
 
-    BOOST_CHECK_EQUAL(oss.str(), "something to show\n");
-
+    REQUIRE(main_stream.str() == "visible message\n");
 }
 
-BOOST_AUTO_TEST_CASE( multiple_loggers_test )
-{
-    oss.str("");
-    oss2.str("");
-    //loggers definition
-    using log1=cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::formatter<float>, oss_test_sink_provider>;
-    using log2=cadmium::logger::logger<cadmium::logger::logger_debug, cadmium::logger::formatter<float>, oss_test_second_sink_provider>;
+TEST_CASE("Multiple loggers direct output to separate sinks", "[logger]") {
+    main_stream.str("");
+    secondary_stream.str("");
 
-    cadmium::logger::multilogger<log1, log2> l;
+    using info_logger = cadmium::logger::logger<
+        cadmium::logger::logger_info,
+        cadmium::logger::formatter<float>,
+        main_sink
+    >;
+    using debug_logger = cadmium::logger::logger<
+        cadmium::logger::logger_debug,
+        cadmium::logger::formatter<float>,
+        secondary_sink
+    >;
 
-    //log usage in different source
-    l.log<cadmium::logger::logger_info, cadmium::logger::run_info>("some info");
-    l.log<cadmium::logger::logger_debug, cadmium::logger::run_info>("some debug");
+    cadmium::logger::multilogger<info_logger, debug_logger> multi_logger;
 
-    BOOST_CHECK_EQUAL(oss.str(), "some info\n");
-    BOOST_CHECK_EQUAL(oss2.str(), "some debug\n");
+    multi_logger.log<cadmium::logger::logger_info, cadmium::logger::run_info>("info output");
+    multi_logger.log<cadmium::logger::logger_debug, cadmium::logger::run_info>("debug output");
 
+    REQUIRE(main_stream.str() == "info output\n");
+    REQUIRE(secondary_stream.str() == "debug output\n");
 }
-
-
-BOOST_AUTO_TEST_SUITE_END()

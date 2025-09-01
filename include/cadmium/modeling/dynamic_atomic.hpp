@@ -29,7 +29,7 @@
 #define CADMIUM_DYNAMIC_ATOMIC_HPP
 
 #include <map>
-#include <boost/any.hpp>
+#include <any>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/concept/concept_helpers.hpp>

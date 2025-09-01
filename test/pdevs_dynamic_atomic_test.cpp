@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2017, Laouen M. L. Belloli
+ * Copyright (c) 2017-2025, Laouen M. L. Belloli, Damian Vicino
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -25,42 +25,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-#define BOOST_TEST_DYN_LINK
-#include <boost/test/unit_test.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <cadmium/basic_model/pdevs/accumulator.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
+
+#include <type_traits>
+#include <memory>
 
 /**
   * This test is for the dynamic atomic class that wraps an atomic model to make it pointer friendly
   */
 template<typename TIME>
-using int_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
+using int_accumulator = cadmium::basic_models::pdevs::accumulator<int, TIME>;
 
 template<typename TIME>
 struct test_custom_acumulator : public cadmium::basic_models::pdevs::accumulator<int, TIME> {
-
     test_custom_acumulator() = default;
-
-    test_custom_acumulator(int a) {}
+    test_custom_acumulator(int) {}
 };
 
-BOOST_AUTO_TEST_SUITE( pdevs_dynamic_atomic_test_suite )
+TEST_CASE("create_dynamic_atomic_test", "[pdevs][dynamic][atomic]") {
+    int_accumulator<float> model;
+    cadmium::dynamic::modeling::atomic<int_accumulator, float> wrapped_model;
 
-    BOOST_AUTO_TEST_CASE(create_dynamic_atomic_test) {
-        int_accumulator<float> model;
-        cadmium::dynamic::modeling::atomic<int_accumulator, float> wrapped_model;
+    #ifndef RT_ARM_MBED
+      static_assert(std::is_same<decltype(model.state), decltype(wrapped_model.state)>::value);
+    #endif
 
-        #ifndef RT_ARM_MBED
-          static_assert(std::is_same<decltype(model.state), decltype(wrapped_model.state)>::value);
-        #endif
-        
-        BOOST_CHECK(model.state == wrapped_model.state);
-    }
+    CHECK(model.state == wrapped_model.state);
+}
 
-    BOOST_AUTO_TEST_CASE(create_dynamic_atomic_with_custom_id_and_arguments_test) {
-        std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> atomic_model = cadmium::dynamic::translate::make_dynamic_atomic_model<test_custom_acumulator, float, int>("id_test", 2);
-    }
+TEST_CASE("create_dynamic_atomic_with_custom_id_and_arguments_test", "[pdevs][dynamic][atomic]") {
+    std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> atomic_model =
+        cadmium::dynamic::translate::make_dynamic_atomic_model<test_custom_acumulator, float, int>("id_test", 2);
 
-BOOST_AUTO_TEST_SUITE_END()
+    // No explicit assertions in original test; construction should not crash
+}

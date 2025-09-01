@@ -41,7 +41,7 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.88.0 COMPONENTS system thread REQUIRED) 
+find_package(Boost 1.88.0 COMPONENTS thread REQUIRED) 
 
 find_package(Catch2 CONFIG REQUIRED)
 
@@ -84,7 +84,7 @@ foreach (exec_type ${EXEC_TYPES})
             target_compile_definitions(${testName} PUBLIC CPU_PARALLEL)
             target_link_libraries(${testName} PUBLIC OpenMP::OpenMP_CXX)
         endif ()
-        target_link_libraries(${testName} PUBLIC cadmium Catch2::Catch2WithMain Boost::system Boost::thread)
+        target_link_libraries(${testName} PUBLIC cadmium Catch2::Catch2WithMain Boost::thread)
         add_test(${testName} ${testName})
     endforeach (testSrc)
 
@@ -138,7 +138,7 @@ FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/pdevs/main-*.cpp
 foreach (exampleSrc ${Examples})
     get_filename_component(exampleName ${exampleSrc} NAME_WE)
     add_executable(${exampleName} ${exampleSrc})
-    target_link_libraries(${exampleName} PUBLIC cadmium Boost::system Boost::thread)
+    target_link_libraries(${exampleName} PUBLIC cadmium Boost::thread)
     target_include_directories(${exampleName} PUBLIC ${Boost_INCLUDE_DIRS})
 endforeach (exampleSrc)
 

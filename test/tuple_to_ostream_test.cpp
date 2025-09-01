@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2017, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -26,28 +26,30 @@
  */
 
 
-#define BOOST_TEST_DYN_LINK
-#include <boost/test/unit_test.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <tuple>
 #include <sstream>
 #include <cadmium/logger/tuple_to_ostream.hpp>
 
-using namespace cadmium; //for the ostream << to be accesible
+using namespace cadmium; // for operator<< on tuples
 
-BOOST_AUTO_TEST_SUITE( tuple_to_ostream_suite )
-BOOST_AUTO_TEST_CASE( simple_common_tuples_test ){
+TEST_CASE("tuple_to_ostream: empty tuple outputs as []", "[tuple_to_ostream]") {
     std::ostringstream oss;
-
     std::tuple<> empty;
     oss << empty;
-    BOOST_CHECK_EQUAL(oss.str(), "[]");
-    oss.str("");
-
-    auto one_int = std::make_tuple(1);
-    oss << one_int;
-    BOOST_CHECK_EQUAL(oss.str(), "[1]");
-    oss.str("");
-
+    REQUIRE(oss.str() == "[]");
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+TEST_CASE("tuple_to_ostream: single int tuple outputs as [1]", "[tuple_to_ostream]") {
+    std::ostringstream oss;
+    auto one_int = std::make_tuple(1);
+    oss << one_int;
+    REQUIRE(oss.str() == "[1]");
+}
+
+TEST_CASE("tuple_to_ostream: two-element tuple outputs as [1, 2.5]", "[tuple_to_ostream]") {
+    std::ostringstream oss;
+    auto two_elements = std::make_tuple(1, 2.5);
+    oss << two_elements;
+    REQUIRE(oss.str() == "[1, 2.5]");
+}

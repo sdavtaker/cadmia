@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2015, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -26,9 +26,7 @@
  */
 
 
-#define BOOST_TEST_DYN_LINK
-#include<boost/test/unit_test.hpp>
-
+#include<catch2/catch_test_macros.hpp>
 
 #include<cadmium/basic_model/pdevs/passive.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
@@ -37,54 +35,42 @@
 #include<stdexcept>
 
 
-BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
-BOOST_AUTO_TEST_SUITE( pdevs_passive_suite )
-
 template<typename TIME>
 using floating_passive=cadmium::basic_models::pdevs::passive<float, TIME>;
 using floating_passive_defs=cadmium::basic_models::pdevs::passive_defs<float>;
 
-BOOST_AUTO_TEST_CASE( it_is_atomic_test ){
-    BOOST_CHECK(cadmium::old_concept::is_atomic<floating_passive>::value());
+TEST_CASE("it_is_atomic_test", "[floating_passive]") {
+    REQUIRE(cadmium::old_concept::is_atomic<floating_passive>::value());
 }
 
-BOOST_AUTO_TEST_CASE( it_is_constructable_test )
-{
-    BOOST_REQUIRE_NO_THROW( floating_passive<float>{} );
+TEST_CASE("it_is_constructable_test", "[floating_passive]") {
+    REQUIRE_NOTHROW(floating_passive<float>{});
 }
 
-BOOST_AUTO_TEST_CASE( it_throws_on_call_to_internal_transition_test )
-{
+TEST_CASE("it_throws_on_call_to_internal_transition_test", "[floating_passive]") {
     auto p = floating_passive<float>();
-    BOOST_CHECK_THROW(p.internal_transition(), std::logic_error);
+    REQUIRE_THROWS_AS(p.internal_transition(), std::logic_error);
 }
 
-BOOST_AUTO_TEST_CASE( it_throws_on_call_to_confluece_transition_test )
-{
+TEST_CASE("it_throws_on_call_to_confluence_transition_test", "[floating_passive]") {
     auto p = floating_passive<float>();
     typename cadmium::make_message_bags<floating_passive<float>::input_ports>::type bags;
     cadmium::get_messages<typename floating_passive_defs::in>(bags).push_back(1);
-    BOOST_CHECK_THROW( p.confluence_transition(5.0, bags), std::logic_error);
+    REQUIRE_THROWS_AS(p.confluence_transition(5.0, bags), std::logic_error);
 }
 
-BOOST_AUTO_TEST_CASE( it_throws_on_call_to_output_function_test )
-{
+TEST_CASE("it_throws_on_call_to_output_function_test", "[floating_passive]") {
     auto p = floating_passive<float>();
-    BOOST_CHECK_THROW( p.output(), std::logic_error);
+    REQUIRE_THROWS_AS(p.output(), std::logic_error);
 }
 
-    BOOST_AUTO_TEST_CASE( call_to_external_transition_keeps_infinite_time_advance_test )
-{
+TEST_CASE("call_to_external_transition_keeps_infinite_time_advance_test", "[floating_passive]") {
     auto p = floating_passive<float>();
     bool is_inf_ta = std::isinf(p.time_advance());
-    BOOST_CHECK_MESSAGE( is_inf_ta, "Passive model is not in passive state");
+    REQUIRE(is_inf_ta); // Passive model is not in passive state
     typename cadmium::make_message_bags<floating_passive<float>::input_ports>::type bags;
     cadmium::get_messages<typename floating_passive_defs::in>(bags).push_back(1);
-    BOOST_CHECK_NO_THROW( p.external_transition(5.0, bags));
+    REQUIRE_NOTHROW(p.external_transition(5.0, bags));
     is_inf_ta = std::isinf(p.time_advance());
-    BOOST_CHECK_MESSAGE( is_inf_ta, "Passive model is not in passive state"  );
+    REQUIRE(is_inf_ta); // Passive model is not in passive state
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-
-BOOST_AUTO_TEST_SUITE_END()
