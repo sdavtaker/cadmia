@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2018, Damian Vicino, Laouen M. L. Belloli
+ * Copyright (c) 2013-2025, Damian Vicino, Laouen M. L. Belloli
  * Carleton University, Universite de Nice-Sophia Antipolis, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -25,8 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef COMMON_LOGGERS_HPP
-#define COMMON_LOGGERS_HPP
+#pragma once
 
 #include <cadmium/logger/logger.hpp>
 #include <cadmium/logger/common_loggers_helpers.hpp>
@@ -261,4 +260,3 @@ namespace cadmium {
 }
 
 
-#endif // COMMON_LOGGERS_HPP

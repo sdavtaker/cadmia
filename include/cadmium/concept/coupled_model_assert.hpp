@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2019, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,8 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_COUPLED_MODEL_ASSERT_HPP
-#define CADMIUM_COUPLED_MODEL_ASSERT_HPP
+#pragma once
 
 #include<cadmium/concept/concept_helpers.hpp>
 #include<cadmium/modeling/message_bag.hpp>
@@ -234,4 +233,3 @@ namespace cadmium::old_concept {
 
     }
 }
-#endif // CADMIUM_COUPLED_MODEL_ASSERT_HPP

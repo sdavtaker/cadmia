@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2017, Laouen M. L. Belloli
+ * Copyright (c) 2017-2025, Laouen M. L. Belloli, Damian Vicino
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -25,8 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP
-#define CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP
+#pragma once
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 
@@ -63,4 +62,3 @@ namespace cadmium {
     }
 }
 
-#endif //CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP

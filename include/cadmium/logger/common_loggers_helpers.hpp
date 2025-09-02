@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2017, Damian Vicino, Laouen M. L. Belloli
+ * Copyright (c) 2017-2025, Damian Vicino, Laouen M. L. Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -25,8 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_COMMON_LOGGERS_HELPERS_HPP
-#define CADMIUM_COMMON_LOGGERS_HELPERS_HPP
+#pragma once
 
 #include <tuple>
 #include <iostream>
@@ -136,4 +135,3 @@ namespace cadmium {
         }
     }
 }
-#endif //CADMIUM_COMMON_LOGGERS_HELPERS_HPP

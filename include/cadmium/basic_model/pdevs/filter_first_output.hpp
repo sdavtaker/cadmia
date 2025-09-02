@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2019, Damian Vicino
+ * Copyright (c) 2019-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -26,8 +26,7 @@
  */
 
 
-#ifndef CADMIUM_PDEVS_FILTER_FIRST_OUTPUT_HPP
-#define CADMIUM_PDEVS_FILTER_FIRST_OUTPUT_HPP
+#pragma once
 
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_bag.hpp>
@@ -96,4 +95,3 @@ namespace cadmium::basic_models::pdevs {
 }
 
 
-#endif // CADMIUM_PDEVS_FILTER_FIRST_OUTPUT_HPP

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2017, Cristina Ruiz Martin, Laouen Mayal Louan Belloli
+ * Copyright (c) 2017-2025, Cristina Ruiz Martin, Laouen Mayal Louan Belloli, Damian Vicino
  * Carleton University
  * All rights reserved.
  *
@@ -25,8 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __IESTREAM_HPP__
-#define __IESTREAM_HPP__
+#pragma once
 
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/message_bag.hpp>
@@ -184,4 +183,3 @@ class iestream_input {
 };
 }
 
-#endif // CADMIUM_IESTREAM_HPP

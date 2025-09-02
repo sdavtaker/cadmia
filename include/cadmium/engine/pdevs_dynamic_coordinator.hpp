@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2018, Laouen M. L. Belloli, Damian Vicino
+ * Copyright (c) 2018-2025, Laouen M. L. Belloli, Damian Vicino
  * Carleton University, Universidad de Buenos Aires, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,8 +25,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_COORDINATOR_HPP
-#define CADMIUM_PDEVS_DYNAMIC_COORDINATOR_HPP
+#pragma once
+
 #include <limits>
 
 #include <cadmium/modeling/dynamic_coupled.hpp>
@@ -245,4 +245,3 @@ namespace cadmium {
     }
 }
 
-#endif //CADMIUM_PDEVS_DYNAMIC_COORDINATOR_HPP

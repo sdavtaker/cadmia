@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2019, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,8 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_MESSAGE_BAG_HPP
-#define CADMIUM_MESSAGE_BAG_HPP
+#pragma once
 
 #include <vector>
 #include <tuple>
@@ -79,6 +78,4 @@ const bag<typename message_bag<PORT>::message_type> & get_messages(const T& mbs)
 }
 
 }
-
-#endif // CADMIUM_MESSAGE_BAG_HPP
 

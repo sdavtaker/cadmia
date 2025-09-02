@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2019, Damian Vicino
+ * Copyright (c) 2019-2025, Damian Vicino
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_MESSAGES_BOX_HPP
-#define CADMIUM_MESSAGES_BOX_HPP
+#pragma once
 
 #include<optional>
 #include<tuple>
@@ -64,4 +63,3 @@ namespace cadmium {
     }
 }
 
-#endif //CADMIUM_MESSAGE_BOX_HPP

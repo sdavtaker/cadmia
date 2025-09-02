@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2019, Ben Earle
+ * Copyright (c) 2019-2025, Ben Earle, Damian Vicino
  * Carleton University
  * All rights reserved.
  *
@@ -25,8 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_OESTREAM_HPP
-#define CADMIUM_OESTREAM_HPP
+#pragma once
 
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/message_bag.hpp>
@@ -111,4 +110,3 @@ public:
 
 };
 
-#endif // CADMIUM_OESTREAM_HPP

@@ -25,8 +25,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_SIMULATOR_HPP
-#define CADMIUM_PDEVS_SIMULATOR_HPP
+#pragma once
+
 #include <sstream>
 #include <typeinfo>
 
@@ -184,6 +184,4 @@ namespace cadmium {
     }
 
 }
-
-#endif // CADMIUM_PDEVS_SIMULATOR_HPP
 

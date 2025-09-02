@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2017, Damian Vicino, Laouen M. L. Belloli
+ * Copyright (c) 2013-2025, Damian Vicino, Laouen M. L. Belloli
  * Carleton University, Universite de Nice-Sophia Antipolis, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -26,8 +26,7 @@
  */
 
 
-#ifndef PDEVS_ENGINE_HELPERS_HPP
-#define PDEVS_ENGINE_HELPERS_HPP
+#pragma once
 
 #include <type_traits>
 #include <tuple>
@@ -311,4 +310,3 @@ namespace cadmium {
     }
 
 }
-#endif // PDEVS_ENGINE_HELPERS_HPP

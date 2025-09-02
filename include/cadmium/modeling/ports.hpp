@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2015, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,8 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PORTS_HPP
-#define CADMIUM_PORTS_HPP
+#pragma once
 
 namespace cadmium {
 
@@ -46,6 +45,4 @@ struct in_port {
 
 }
 
-
-#endif // CADMIUM_PORTS_HPP
 

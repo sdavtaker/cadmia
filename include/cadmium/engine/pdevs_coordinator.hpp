@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -26,8 +26,8 @@
  */
 
 
-#ifndef CADMIUM_PDEVS_COORDINATOR_H
-#define CADMIUM_PDEVS_COORDINATOR_H
+#pragma once
+
 #include <limits>
 #include <typeinfo>
 #include <string>
@@ -179,4 +179,3 @@ namespace cadmium {
     }
 }
 
-#endif // CADMIUM_PDEVS_COORDINATOR_H

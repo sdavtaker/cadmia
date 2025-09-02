@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2017, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,8 +25,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_RUNNER_HPP
-#define CADMIUM_PDEVS_RUNNER_HPP
+#pragma once
+
 #include <iostream>
 #include <cadmium/engine/pdevs_coordinator.hpp>
 #include <cadmium/concept/atomic_model_assert.hpp>
@@ -104,4 +104,3 @@ namespace cadmium {
 }
 
 
-#endif // CADMIUM_PDEVS_RUNNER_HPP

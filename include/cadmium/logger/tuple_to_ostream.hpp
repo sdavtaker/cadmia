@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2017, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,8 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TUPLE_TO_OSTREAM_HPP
-#define TUPLE_TO_OSTREAM_HPP
+#pragma once
 
 /**
  * @brief Here we define a simple helper function for output tuple to ostream
@@ -75,4 +74,3 @@ namespace cadmium {
     }
 
 }
-#endif // TUPLE_TO_OSTREAM_HPP

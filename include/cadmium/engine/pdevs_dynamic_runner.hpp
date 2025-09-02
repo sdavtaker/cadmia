@@ -3,7 +3,7 @@
  * 2021 - Ezequiel Pecker-Marcosig
  * Universidad de Buenos Aires
  * 
- * Copyright (c) 2018, Damian Vicino, Laouen M. L. Belloli
+ * Copyright (c) 2018-2025, Damian Vicino, Laouen M. L. Belloli
  * Carleton University, Universite de Nice-Sophia Antipolis, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -28,8 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_RUNNER_HPP
-#define CADMIUM_PDEVS_DYNAMIC_RUNNER_HPP
+#pragma once
 
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
 #include<limits>
@@ -132,4 +131,3 @@ namespace cadmium {
     }
 }
 
-#endif //CADMIUM_PDEVS_DYNAMIC_RUNNER_HPP
