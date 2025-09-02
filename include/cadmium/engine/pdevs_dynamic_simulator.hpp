@@ -77,18 +77,6 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_state, cadmium::logger::sim_state>(initial_time, _model->get_id(), _model->model_state_as_string());
                 }
 
-                #ifdef CADMIUM_EXECUTE_CONCURRENT
-                void init(TIME initial_time, boost::basic_thread_pool* threadpool) override {
-                    this->init(initial_time);
-                }
-                #endif //CADMIUM_EXECUTE_CONCURRENT
-
-                #ifdef CPU_PARALLEL
-                void init(TIME initial_time, size_t thread_number) override {
-                    this->init(initial_time);
-                }
-                #endif //CPU_PARALLEL
-
                 std::string get_model_id() const override {
                     return _model->get_id();
                 }

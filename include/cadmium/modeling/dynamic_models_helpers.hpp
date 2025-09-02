@@ -34,6 +34,7 @@
 #include <map>
 #include <memory>
 #include <algorithm>
+#include <typeinfo>
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
@@ -75,7 +76,7 @@ namespace cadmium {
                     }
 
                     bag_type& casted_bag = std::any_cast<bag_type&>(bags.at(typeid(port_type)));
-                    os << boost::typeindex::type_id<port_type>().pretty_name();
+                    os << typeid(port_type).name();
                     os << ": ";
                     cadmium::logger::implode(os, casted_bag.messages);
 

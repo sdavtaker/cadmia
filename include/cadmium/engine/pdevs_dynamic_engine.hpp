@@ -30,10 +30,6 @@
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 
-#ifdef CADMIUM_EXECUTE_CONCURRENT
-#include <boost/thread/executors/basic_thread_pool.hpp>
-#endif
-
 namespace cadmium {
     namespace dynamic {
         namespace engine {
@@ -48,14 +44,6 @@ namespace cadmium {
             class engine {
             public:
                 virtual void init(TIME initial_time) = 0;
-
-                #ifdef CADMIUM_EXECUTE_CONCURRENT
-                virtual void init(TIME initial_time, boost::basic_thread_pool* threadpool) = 0;
-                #endif
-
-                #ifdef CPU_PARALLEL
-                virtual void init(TIME initial_time, size_t thread_number) = 0;
-                #endif
 
                 virtual std::string get_model_id() const = 0;
 

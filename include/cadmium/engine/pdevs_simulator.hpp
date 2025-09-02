@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2025, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -28,7 +28,7 @@
 #ifndef CADMIUM_PDEVS_SIMULATOR_HPP
 #define CADMIUM_PDEVS_SIMULATOR_HPP
 #include <sstream>
-#include <boost/type_index.hpp>
+#include <typeinfo>
 
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/concept/atomic_model_assert.hpp>
@@ -41,7 +41,6 @@
 namespace cadmium {
     namespace engine {
         template<template<typename T> class MODEL, typename TIME, typename LOGGER>
-        //TODO: implement the debugging
         class simulator {
 
             using input_ports=typename MODEL<TIME>::input_ports;
@@ -83,10 +82,7 @@ namespace cadmium {
                 oss << _model.state;
                 std::string model_state = oss.str();
 
-                oss.clear();
-                oss.str("");
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
-                _model_id = oss.str();
+                _model_id = typeid(model_type).name();
 
                 LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_init>(initial_time, _model_id);
 

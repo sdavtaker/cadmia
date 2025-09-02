@@ -34,32 +34,6 @@
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
 #include<limits>
 
-#ifdef CADMIUM_EXECUTE_CONCURRENT
-#include <boost/thread/executors/basic_thread_pool.hpp>
-#endif //CADMIUM_EXECUTE_CONCURRENT
-
-//SET RT_DEVS and load load the correct clock
-#ifdef RT_ARM_MBED 
-    #include <cadmium/real_time/arm_mbed/rt_clock.hpp>
-#elif RT_LINUX
-    #include <cadmium/real_time/linux/rt_clock.hpp>
-#elif RT_WIN
-    #include <cadmium/real_time/win/rt_clock.hpp>
-#endif
-
-#ifdef RT_DEVS
-    #include <cadmium/modeling/dynamic_model.hpp>
-    //Gross global boolean to say if an interrupt occured.
-    //Todo: Do this better - can we avoid making it a global bool?
-    //      Maybe have every enlist as an asynchronus atomic observer?
-    // volatile bool interrupted = false;
-    bool serviceInterrupts = false;
-#endif
-#if defined CPU_PARALLEL
-#include <thread>
-#include <cadmium/engine/parallel_helpers.hpp>
-#endif //CPU_PARALLEL
-
 namespace cadmium {
     namespace dynamic {
         namespace engine {
@@ -88,14 +62,6 @@ namespace cadmium {
 
                 cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
 
-                #ifdef CADMIUM_EXECUTE_CONCURRENT
-                boost::basic_thread_pool _threadpool;
-                #endif //CADMIUM_EXECUTE_CONCURRENT
-
-                #ifdef CPU_PARALLEL
-                size_t _thread_number;
-                #endif//CPU_PARALLEL
-
             public:
                 //contructors
                 /**
@@ -103,78 +69,20 @@ namespace cadmium {
                  * @param init_time is the initial time of the simulation.
                  */
 
-                #ifdef CADMIUM_EXECUTE_CONCURRENT
-                explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time, unsigned const thread_count = boost::thread::hardware_concurrency())
-                : _top_coordinator(coupled_model),
-                _threadpool(thread_count){
+                explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time)
+                : _top_coordinator(coupled_model){
                     LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
-                    _top_coordinator.init(init_time, &_threadpool);
+                    _top_coordinator.init(init_time);
                     _next = _top_coordinator.next();
                 }
-                #else
-                    #if defined CPU_PARALLEL
-                    explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time, unsigned const thread_number = std::thread::hardware_concurrency())
-                    : _top_coordinator(coupled_model){
-                        _thread_number = thread_number;
-                        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
-                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
-                        _top_coordinator.init(init_time, _thread_number);
-                        _next = _top_coordinator.next();
-                    }
-                    #else
-                    explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time)
-                    : _top_coordinator(coupled_model){
-                        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
-                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
-                        _top_coordinator.init(init_time);
-                        _next = _top_coordinator.next();
-                    }
-                    #endif //CPU_PARALLEL
-                #endif //CADMIUM_EXECUTE_CONCURRENT
 
                 /**
                  * @brief runUntil starts the simulation and stops when the next event is scheduled after t.
                  * @param t is the limit time for the simulation.
                  * @return the TIME of the next event to happen when simulation stopped.
                  */
-                #ifdef RT_DEVS
-
-                    TIME run_until(const TIME &t) {
-                        TIME e;
-                        TIME temp;
-                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
-
-                        _last = TIME();
-                        cadmium::embedded::rt_clock<TIME> timer(_top_coordinator.get_async_subjects());
-
-                        while (_next < t) {
-                            if (_next != _last) {
-                                e = timer.wait_for(_next - _last);
-                                if(e == TIME::zero()){
-                                    _last = _next;
-
-                                } else {
-                                    //interrupt occured, we must handle it.
-                                    _last += e;
-                                    _top_coordinator.interrupt_notify(_last);
-                                    serviceInterrupts = true;
-                                }
-                            }
-                            LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_last);
-                            _top_coordinator.collect_outputs(_last);
-                            _top_coordinator.advance_simulation(_last);
-                            _next = _top_coordinator.next();
-                            if(serviceInterrupts) {
-                                serviceInterrupts = false;
-                            }
-                        }
-                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
-                        return _next;
-                    }
-
-                #else
-                    TIME run_until(const TIME &t) {
+                TIME run_until(const TIME &t) {
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
                     while (_next < t) {
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
@@ -190,8 +98,6 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
                     return _next;
                 }
-                #endif
-                
 
                 /**
                  * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.

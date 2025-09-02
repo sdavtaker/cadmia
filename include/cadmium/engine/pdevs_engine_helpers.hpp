@@ -34,7 +34,7 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
-#include <boost/type_index.hpp>
+#include <typeinfo>
 
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/modeling/message_bag.hpp>
@@ -155,15 +155,15 @@ namespace cadmium {
                 std::ostringstream oss;
                 logger::implode(oss, from_messages);
                 std::string from_messages_str = oss.str();
-                std::string from_port_str = boost::typeindex::type_id<submodel_output_port >().pretty_name();
+                std::string from_port_str = typeid(submodel_output_port).name();
 
                 oss.clear();
                 oss.str("");
                 logger::implode(oss, to_messages);
                 std::string to_messages_str = oss.str();
-                std::string to_port_str = boost::typeindex::type_id<external_output_port>().pretty_name();
+                std::string to_port_str = typeid(external_output_port).name();
 
-                std::string from_model_str = boost::typeindex::type_id<submodel_from>().pretty_name();
+                std::string from_model_str = typeid(submodel_from).name();
 
                 LOGGER::template log<
                         cadmium::logger::logger_message_routing,
@@ -220,15 +220,15 @@ namespace cadmium {
                 std::ostringstream oss;
                 logger::implode(oss, from_messages);
                 std::string from_messages_str = oss.str();
-                std::string from_port_str = boost::typeindex::type_id<from_port>().pretty_name();
-                std::string from_model_str = boost::typeindex::type_id<from_model>().pretty_name();
+                std::string from_port_str = typeid(from_port).name();
+                std::string from_model_str = typeid(from_model).name();
 
                 oss.clear();
                 oss.str("");
                 logger::implode(oss, to_messages);
                 std::string to_messages_str = oss.str();
-                std::string to_port_str = boost::typeindex::type_id<to_port>().pretty_name();
-                std::string to_model_str = boost::typeindex::type_id<to_model>().pretty_name();
+                std::string to_port_str = typeid(to_port).name();
+                std::string to_model_str = typeid(to_model).name();
 
                 LOGGER::template log<
                         cadmium::logger::logger_message_routing,
@@ -272,15 +272,15 @@ namespace cadmium {
                     std::ostringstream oss;
                     logger::implode(oss, from_messages);
                     std::string from_messages_str = oss.str();
-                    std::string from_port_str = boost::typeindex::type_id<from_port>().pretty_name();
+                    std::string from_port_str = typeid(from_port).name();
 
                     oss.clear();
                     oss.str("");
                     logger::implode(oss, to_messages);
                     std::string to_messages_str = oss.str();
-                    std::string to_port_str = boost::typeindex::type_id<to_port>().pretty_name();
+                    std::string to_port_str = typeid(to_port).name();
 
-                    std::string to_model_str = boost::typeindex::type_id<to_model>().pretty_name();
+                    std::string to_model_str = typeid(to_model).name();
 
                     LOGGER::template log<
                             cadmium::logger::logger_message_routing,

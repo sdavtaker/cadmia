@@ -29,7 +29,8 @@
 #ifndef CADMIUM_PDEVS_COORDINATOR_H
 #define CADMIUM_PDEVS_COORDINATOR_H
 #include <limits>
-#include <boost/type_index.hpp>
+#include <typeinfo>
+#include <string>
 
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
 #include <cadmium/modeling/coupling.hpp>
@@ -92,9 +93,7 @@ namespace cadmium {
             void init(TIME t) noexcept {
 
                 //logging data
-                std::ostringstream oss;
-                oss << boost::typeindex::type_id<MODEL<TIME>>().pretty_name();
-                _model_id = oss.str();
+                _model_id = typeid(MODEL<TIME>).name();
                 LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_init>(t, _model_id);
 
                 _last = t;
@@ -179,7 +178,5 @@ namespace cadmium {
         };
     }
 }
-
-
 
 #endif // CADMIUM_PDEVS_COORDINATOR_H

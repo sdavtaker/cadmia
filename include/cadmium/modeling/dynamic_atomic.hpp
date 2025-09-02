@@ -35,6 +35,7 @@
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/concept/atomic_model_assert.hpp>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
+#include <typeinfo>
 
 namespace cadmium {
     namespace dynamic {
@@ -73,7 +74,7 @@ namespace cadmium {
                 atomic() {
                     static_assert(cadmium::old_concept::is_atomic<ATOMIC>::value(), "This is not an atomic model");
                     cadmium::old_concept::pdevs::atomic_model_assert<ATOMIC>();
-                    _id = boost::typeindex::type_id<model_type>().pretty_name();
+                    _id = typeid(model_type).name();
                     _input_ports = cadmium::dynamic::modeling::create_dynamic_ports<input_ports>();
                     _output_ports = cadmium::dynamic::modeling::create_dynamic_ports<output_ports>();
                 }

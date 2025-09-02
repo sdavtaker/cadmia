@@ -2,8 +2,6 @@
   "name": "cadmium",
   "version-string": "0.1.0",
   "dependencies": [
-    "boost-thread",
-    "boost-type-index",
     "catch2"
   ]
 }

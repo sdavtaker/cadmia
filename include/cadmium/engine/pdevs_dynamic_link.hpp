@@ -29,6 +29,7 @@
 #define CADMIUM_PDEVS_DYNAMIC_LINK_HPP
 
 #include <typeindex>
+#include <typeinfo>
 #include <memory>
 
 #include <cadmium/logger/dynamic_common_loggers.hpp>
@@ -98,8 +99,8 @@ namespace cadmium {
                     return cadmium::dynamic::logger::routed_messages(
                             cadmium::logger::messages_as_strings(b_from.messages),
                             cadmium::logger::messages_as_strings(b_to->messages),
-                            boost::typeindex::type_id<PORT_FROM>().pretty_name(),
-                            boost::typeindex::type_id<PORT_TO>().pretty_name()
+                            typeid(PORT_FROM).name(),
+                            typeid(PORT_TO).name()
                     );
                 }
 
@@ -115,8 +116,8 @@ namespace cadmium {
                     return cadmium::dynamic::logger::routed_messages(
                             cadmium::logger::messages_as_strings(b_from.messages),
                             cadmium::logger::messages_as_strings(b_to.messages),
-                            boost::typeindex::type_id<PORT_FROM>().pretty_name(),
-                            boost::typeindex::type_id<PORT_TO>().pretty_name()
+                            typeid(PORT_FROM).name(),
+                            typeid(PORT_TO).name()
                     );
                 }
 
@@ -148,8 +149,8 @@ namespace cadmium {
                     }
 
                     cadmium::dynamic::logger::routed_messages empty_ret(
-                            boost::typeindex::type_id<PORT_FROM>().pretty_name(),
-                            boost::typeindex::type_id<PORT_TO>().pretty_name()
+                            typeid(PORT_FROM).name(),
+                            typeid(PORT_TO).name()
                     );
                     return empty_ret; // if no messages where routed, it returns an empty vector
                 }

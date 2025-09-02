@@ -29,9 +29,9 @@
 #define CADMIUM_COMMON_LOGGERS_HELPERS_HPP
 
 #include <tuple>
-#include <boost/type_index.hpp>
 #include <iostream>
 #include <cadmium/modeling/message_bag.hpp>
+#include <typeinfo>
 
 namespace cadmium {
     namespace logger {
@@ -64,7 +64,7 @@ namespace cadmium {
         struct value_or_name<T, std::false_type>{
             static void print(std::ostream& os, const T& v){
                 os << "obscure message of type ";
-                os << boost::typeindex::type_id<T>().pretty_name();
+                os << typeid(T).name();
             }
         };
 
@@ -107,7 +107,7 @@ namespace cadmium {
             static void run(std::ostream& os, const std::tuple<T...>& b){
                 print_messages_by_port_impl<s-1, T...>::run(os, b);
                 os << ", ";
-                os << boost::typeindex::type_id<typename current_bag::port>().pretty_name();
+                os << typeid(typename current_bag::port).name();
                 os << ": ";
                 implode(os, cadmium::get_messages<typename current_bag::port>(b));
             }
@@ -117,7 +117,7 @@ namespace cadmium {
         struct print_messages_by_port_impl<1, T...>{
             using current_bag=typename std::tuple_element<0, std::tuple<T...>>::type;
             static void run(std::ostream& os, const std::tuple<T...>& b){
-                os << boost::typeindex::type_id<typename current_bag::port>().pretty_name();
+                os << typeid(typename current_bag::port).name();
                 os << ": ";
                 implode(os, cadmium::get_messages<typename current_bag::port>(b));
             }

@@ -31,7 +31,6 @@
 
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/engine/pdevs_dynamic_simulator.hpp>
-#include <cadmium/engine/pdevs_dynamic_asynchronus_simulator.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/logger/dynamic_common_loggers.hpp>
@@ -56,16 +55,8 @@ namespace cadmium {
                 external_couplings<TIME> _external_input_couplings;
                 internal_couplings<TIME> _internal_coupligns;
 
-                #ifdef CADMIUM_EXECUTE_CONCURRENT
-                boost::basic_thread_pool* _threadpool;
-                #endif //CADMIUM_EXECUTE_CONCURRENT
-
                 std::vector <class cadmium::dynamic::modeling::AsyncEventSubject *> _async_subjects;
                 
-                #ifdef CPU_PARALLEL
-                size_t _thread_number;
-                #endif //CPU_PARALLEL
-
             public:
 
                 dynamic::message_bags _inbox;
@@ -81,34 +72,21 @@ namespace cadmium {
                 coordinator(std::shared_ptr<model_type> coupled_model)
                         : _model_id(coupled_model->get_id())
                 {
-                    #ifdef CADMIUM_EXECUTE_CONCURRENT
-                    _threadpool = nullptr;
-                    #endif //CADMIUM_EXECUTE_CONCURRENT
-
                     std::map<std::string, std::shared_ptr<engine<TIME>>> engines_by_id;
 
                     for(auto& m : coupled_model->_models) {
                         std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> m_coupled = std::dynamic_pointer_cast<cadmium::dynamic::modeling::coupled<TIME>>(m);
-                        std::shared_ptr<cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>> m_async = std::dynamic_pointer_cast<cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>>(m);
                         std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> m_atomic = std::dynamic_pointer_cast<cadmium::dynamic::modeling::atomic_abstract<TIME>>(m);
 
                         if (m_coupled == nullptr) {
-                            if (m_atomic == nullptr && m_async == nullptr) {
+                            if (m_atomic == nullptr) {
                                 throw std::domain_error("Invalid submodel is neither coupled nor atomic");
-                            } else if(m_atomic != nullptr && m_async != nullptr) {
-                                throw std::domain_error("Invalid submodel is both atomic and async");
                             }
 
-                            if(m_async == nullptr) {
-                                std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::simulator<TIME, LOGGER>>(m_atomic);
-                                _subcoordinators.push_back(simulator);
-                            } else {
-                                std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::asynchronus_simulator<TIME, LOGGER>>(m_async);
-                                _subcoordinators.push_back(simulator);
-                                _async_subjects.push_back((cadmium::dynamic::modeling::AsyncEventSubject *) m_async.get());
-                            }
+                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::simulator<TIME, LOGGER>>(m_atomic);
+                            _subcoordinators.push_back(simulator);
                         } else {
-                            if (m_atomic != nullptr || m_async != nullptr) {
+                            if (m_atomic != nullptr) {
                                 throw std::domain_error("Invalid submodel is defined as both coupled and atomic");
                             }
                             std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> coordinator = std::make_shared<cadmium::dynamic::engine::coordinator<TIME, LOGGER>>(m_coupled);
@@ -169,37 +147,11 @@ namespace cadmium {
                     _last = initial_time;
                     //init all subcoordinators and find next transition time.
 
-					#ifdef CADMIUM_EXECUTE_CONCURRENT
-                    cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _threadpool);
-                    #else
-						#if defined CPU_PARALLEL
-                    	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _thread_number);
-						#else
-                    	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators);
-						#endif
-                    #endif //CADMIUM_EXECUTE_CONCURRENT
-
+                    cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators);
 
                     //find the one with the lowest next time
                     _next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
                 }
-
-                #ifdef CADMIUM_EXECUTE_CONCURRENT
-
-                void init(TIME initial_time, boost::basic_thread_pool* threadpool) override {
-                    _threadpool = threadpool;
-                    this->init(initial_time);
-                }
-
-                #endif //CADMIUM_EXECUTE_CONCURRENT
-
-				#ifdef CPU_PARALLEL
-                void init(TIME initial_time, size_t thread_number) {
-                    _thread_number = thread_number;
-                    this->init(initial_time);
-                }
-                #endif //CPU_PARALLEL
-
 
                 std::string get_model_id() const override {
                     return _model_id;
@@ -230,15 +182,7 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eoc_collect>(t, _model_id);
 
                         // Fill all outboxes and clean the inboxes in the lower levels recursively
-						#ifdef CADMIUM_EXECUTE_CONCURRENT
-                        cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators, _threadpool);
-						#else
-							#if defined CPU_PARALLEL
-                        	cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators, _thread_number);
-							#else
-                        	cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
-							#endif
-						#endif
+                        cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
 
                         // Use the EOC mapping to compose current level output
                         _outbox = cadmium::dynamic::engine::collect_messages_by_eoc<TIME, LOGGER>(_external_output_couplings);
@@ -282,15 +226,7 @@ namespace cadmium {
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
 
                         //recurse on advance_simulation
-						#ifdef CADMIUM_EXECUTE_CONCURRENT
-                        cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators, _threadpool);
-						#else
-							#if defined CPU_PARALLEL
-                        	cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators, _thread_number);
-							#else
-                        	cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators);
-							#endif
-						#endif
+                        cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators);
 
                         //set _last and _next
                         _last = t;
@@ -304,17 +240,6 @@ namespace cadmium {
                 std::vector <class cadmium::dynamic::modeling::AsyncEventSubject *> get_async_subjects() {
                     return _async_subjects;
                 }
-
-                #ifdef RT_DEVS
-                /**
-                 * @brief interrupt_notify will force the simulator to wakeup its sub-engines in the event of an interrupt.
-                 * @param t should be the current time of the simulation
-                 */
-                void interrupt_notify(const TIME &t) {
-                    _next = t;
-                }
-
-                #endif
             };
         }
     }
