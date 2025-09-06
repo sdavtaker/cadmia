@@ -11,20 +11,46 @@ env:
   BUILD_TYPE: Debug
 
 jobs:
+  check-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -yq clang-format
+
+      - name: Check formatting (clang-format)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Checking formatting with clang-format..."
+          # Find typical C/C++ source and header files tracked by git
+          mapfile -t paths < <(git ls-files | grep -E '\\.(c|cc|cpp|cxx|h|hh|hpp|hxx)$' || true)
+          if [ ${#paths[@]} -eq 0 ]; then
+            echo "No C/C++ files to check."
+            exit 0
+          fi
+          # Run clang-format in check mode; fail on any diff
+          printf '%s\0' "${paths[@]}" | xargs -0 -r clang-format -style=file -n --Werror
+
   build:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-latest
+    needs: check-format
 
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: true
 
-    # Install dependencies
-    - name: boost
-      run: sudo apt-get update && sudo apt-get install -yq libboost-all-dev
+    - name: Setup vcpkg
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git "${{github.workspace}}/vcpkg"
+        "${{github.workspace}}/vcpkg/bootstrap-vcpkg.sh"
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
