@@ -28,6 +28,7 @@ Response format:
   20) For code correctness refer to C++ Core Guidelines (https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines).
   21) For functionality correctness refer to uadevs-paper.text file in this repo. We are building a C++ library for AI-DEVS simulation.
   22) Prefer the use of STL algorithms and data structures over custom implementations.
+  23) When using exceptions, prefer standard exceptions document in the code if what exceptions guarantee is provided (strong, basic, no-throw).
 
 Project constraints:
 - Respect existing license headers and SPDX tags.
