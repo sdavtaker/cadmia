@@ -130,3 +130,37 @@ install(
     ${CMAKE_BINARY_DIR}/cadmiumConfigVersion.cmake
     DESTINATION
     ${CMAKE_INSTALL_LIBDIR}/cmake/cadmium)
+
+# Formatting targets (clang-format)
+# Creates:
+#  - format: applies formatting in-place according to .clang-format
+#  - check-format: verifies formatting (fails if changes would be made)
+find_program(CLANG_FORMAT
+    NAMES clang-format clang-format-18 clang-format-17 clang-format-16 clang-format-15
+    DOC "Path to clang-format executable")
+
+if (CLANG_FORMAT)
+    # Collect candidate source files to format
+    file(GLOB_RECURSE CADMIUM_FORMAT_FILES CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/**/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/engine/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/engine/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/example/**/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/**/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/test-compile/**/*.cpp
+    )
+
+    add_custom_target(format
+        COMMAND ${CLANG_FORMAT} -i -style=file ${CADMIUM_FORMAT_FILES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Applying clang-format to project sources"
+        VERBATIM)
+
+    add_custom_target(check-format
+        COMMAND ${CLANG_FORMAT} -style=file --dry-run -Werror ${CADMIUM_FORMAT_FILES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Checking clang-format compliance"
+        VERBATIM)
+else()
+    message(STATUS "clang-format not found. 'format' and 'check-format' targets will be unavailable.")
+endif()
