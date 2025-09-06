@@ -25,8 +25,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cadmium/concept/coupled_model_assert.hpp>
-#include <cadmium/modeling/coupling.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/modeling/coupling.hpp>
 
 #include <tuple>
 #include <vector>

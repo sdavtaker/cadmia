@@ -34,14 +34,14 @@
  * This is used as part of multiple compile tests
  */
 
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
+#include <cadmia/modeling/ports.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
 #include <tuple>
 
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/basic_model/pdevs/passive.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
+#include <cadmia/basic_model/pdevs/passive.hpp>
 
 using namespace cadmium;
 //ports

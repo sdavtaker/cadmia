@@ -29,10 +29,10 @@
  * Test that failing to declare the right EOC specification in a coupled model fails compilation
  */
 
-#include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/modeling/ports.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/modeling/ports.hpp>
 
 // a generator using floating point messages
 const float init_period         = 0.1f;

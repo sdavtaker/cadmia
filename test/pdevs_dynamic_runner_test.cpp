@@ -30,15 +30,15 @@
 
 #include <sstream>
 
-#include <cadmium/basic_model/pdevs/generator.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
 
-#include <cadmium/modeling/dynamic_coupled.hpp>
-#include <cadmium/modeling/dynamic_atomic.hpp>
-#include <cadmium/modeling/dynamic_model_translator.hpp>
+#include <cadmia/modeling/dynamic_coupled.hpp>
+#include <cadmia/modeling/dynamic_atomic.hpp>
+#include <cadmia/modeling/dynamic_model_translator.hpp>
 
-#include <cadmium/engine/pdevs_dynamic_runner.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/logger/common_loggers.hpp>
+#include <cadmia/engine/pdevs_dynamic_runner.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/logger/common_loggers.hpp>
 
 using Catch::Approx;
 

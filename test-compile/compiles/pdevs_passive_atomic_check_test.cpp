@@ -30,8 +30,8 @@
  * that is not failing compilation on atomic_model_assert.
  */
 
-#include <cadmium/basic_model/pdevs/passive.hpp>
-#include <cadmium/concept/atomic_model_assert.hpp>
+#include <cadmia/basic_model/pdevs/passive.hpp>
+#include <cadmia/concept/atomic_model_assert.hpp>
 
 // preparing the passive to be used as atomic model
 template <typename TIME>

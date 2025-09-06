@@ -27,11 +27,11 @@
 
 
 #include <catch2/catch_test_macros.hpp>
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/engine/pdevs_simulator.hpp>
-#include <cadmium/engine/pdevs_coordinator.hpp>
-#include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/engine/pdevs_engine_helpers.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/engine/pdevs_simulator.hpp>
+#include <cadmia/engine/pdevs_coordinator.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
+#include <cadmia/engine/pdevs_engine_helpers.hpp>
 
 /**
   * This test is for some common helper functions used by coordinators and simulators

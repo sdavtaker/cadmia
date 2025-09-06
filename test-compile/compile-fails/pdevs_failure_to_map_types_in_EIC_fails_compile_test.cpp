@@ -29,10 +29,10 @@
  * Test that failing to declare the right EIC specification in a coupled model fails compilation
  * when asserted
  */
-#include <cadmium/basic_model/pdevs/passive.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/modeling/ports.hpp>
+#include <cadmia/basic_model/pdevs/passive.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/modeling/ports.hpp>
 
 template <typename TIME> using passive = cadmium::basic_models::pdevs::passive<int, TIME>;
 using passive_in                       = cadmium::basic_models::pdevs::passive_defs<int>::in;

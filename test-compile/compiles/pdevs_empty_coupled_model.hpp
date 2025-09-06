@@ -32,8 +32,8 @@
 #ifndef EMPTY_COUPLED_MODEL_HPP
 #define EMPTY_COUPLED_MODEL_HPP
 
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupling.hpp>
+#include <cadmia/modeling/ports.hpp>
+#include <cadmia/modeling/coupling.hpp>
 #include <tuple>
 
 struct pdevs_empty_coupled_model {

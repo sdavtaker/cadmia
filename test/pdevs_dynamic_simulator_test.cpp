@@ -30,13 +30,13 @@
 #include <limits>
 #include <any>
 
-#include <cadmium/logger/tuple_to_ostream.hpp>
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/modeling/dynamic_message_bag.hpp>
-#include <cadmium/modeling/dynamic_atomic.hpp>
-#include <cadmium/engine/pdevs_dynamic_simulator.hpp>
-#include <cadmium/modeling/dynamic_model_translator.hpp>
+#include <cadmia/logger/tuple_to_ostream.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
+#include <cadmia/modeling/dynamic_message_bag.hpp>
+#include <cadmia/modeling/dynamic_atomic.hpp>
+#include <cadmia/engine/pdevs_dynamic_simulator.hpp>
+#include <cadmia/modeling/dynamic_model_translator.hpp>
 
 template<typename TIME>
 using int_accumulator = cadmium::basic_models::pdevs::accumulator<int, TIME>;

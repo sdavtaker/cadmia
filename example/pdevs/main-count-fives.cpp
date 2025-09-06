@@ -27,15 +27,15 @@
 
 // counting until 5 and output every 5 seconds.
 
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/basic_model/pdevs/int_generator_one_sec.hpp>
-#include <cadmium/basic_model/pdevs/reset_generator_five_sec.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
-#include <cadmium/engine/pdevs_runner.hpp>
-#include <cadmium/logger/common_loggers.hpp>
-#include <cadmium/logger/tuple_to_ostream.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/modeling/ports.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/basic_model/pdevs/int_generator_one_sec.hpp>
+#include <cadmia/basic_model/pdevs/reset_generator_five_sec.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/engine/pdevs_runner.hpp>
+#include <cadmia/logger/common_loggers.hpp>
+#include <cadmia/logger/tuple_to_ostream.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/modeling/ports.hpp>
 
 #include <algorithm>
 #include <chrono>

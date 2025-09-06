@@ -25,8 +25,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cadmium/engine/pdevs_coordinator.hpp>
-#include <cadmium/logger/common_loggers.hpp>
+#include <cadmia/engine/pdevs_coordinator.hpp>
+#include <cadmia/logger/common_loggers.hpp>
 
 #include "pdevs_empty_coupled_model.hpp"
 

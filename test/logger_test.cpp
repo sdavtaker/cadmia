@@ -28,8 +28,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <sstream>
-#include <cadmium/logger/logger.hpp>
-#include <cadmium/logger/common_loggers.hpp>
+#include <cadmia/logger/logger.hpp>
+#include <cadmia/logger/common_loggers.hpp>
 
 namespace {
     std::ostringstream main_stream;

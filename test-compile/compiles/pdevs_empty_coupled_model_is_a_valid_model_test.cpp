@@ -28,7 +28,7 @@
 /**
  * Test that asserting couple over an empty coupled model is not a compile error
  */
-#include <cadmium/concept/coupled_model_assert.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
 
 #include "pdevs_empty_coupled_model.hpp"
 

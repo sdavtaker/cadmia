@@ -27,11 +27,11 @@
 
 // This file will include the clock example
 
-#include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
-#include <cadmium/engine/pdevs_runner.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/modeling/ports.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/engine/pdevs_runner.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/modeling/ports.hpp>
 
 #include <algorithm>
 #include <chrono>

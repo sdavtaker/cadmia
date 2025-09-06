@@ -29,8 +29,8 @@
  * Test that a simulator of a valid atomic model provides the model type
  */
 
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/engine/pdevs_simulator.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/engine/pdevs_simulator.hpp>
 
 #include <tuple>
 

@@ -26,18 +26,18 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-#include <cadmium/logger/tuple_to_ostream.hpp>
+#include <cadmia/logger/tuple_to_ostream.hpp>
 
-#include <cadmium/basic_model/pdevs/int_generator_one_sec.hpp>
-#include <cadmium/basic_model/pdevs/reset_generator_five_sec.hpp>
-#include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/engine/pdevs_coordinator.hpp>
-#include <cadmium/engine/pdevs_simulator.hpp>
-#include <cadmium/concept/concept_helpers.hpp>
-#include <cadmium/engine/pdevs_engine_helpers.hpp>
-#include <cadmium/logger/logger.hpp>
+#include <cadmia/basic_model/pdevs/int_generator_one_sec.hpp>
+#include <cadmia/basic_model/pdevs/reset_generator_five_sec.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/engine/pdevs_coordinator.hpp>
+#include <cadmia/engine/pdevs_simulator.hpp>
+#include <cadmia/concept/concept_helpers.hpp>
+#include <cadmia/engine/pdevs_engine_helpers.hpp>
+#include <cadmia/logger/logger.hpp>
 
 
 /**

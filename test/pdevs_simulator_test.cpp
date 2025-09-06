@@ -26,11 +26,11 @@
  */
 
 #include<catch2/catch_test_macros.hpp>
-#include <cadmium/logger/tuple_to_ostream.hpp>
+#include <cadmia/logger/tuple_to_ostream.hpp>
 
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/engine/pdevs_simulator.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
+#include <cadmia/engine/pdevs_simulator.hpp>
 
 
 

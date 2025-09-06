@@ -34,12 +34,12 @@
 #ifndef COUPLED_OF_MIXED_MODELS_HPP
 #define COUPLED_OF_MIXED_MODELS_HPP
 
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
+#include <cadmia/modeling/ports.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
 #include <tuple>
 
-#include <cadmium/basic_model/pdevs/passive.hpp>
+#include <cadmia/basic_model/pdevs/passive.hpp>
 
 using namespace cadmium;
 //ports

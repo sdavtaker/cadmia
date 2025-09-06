@@ -29,10 +29,10 @@
  * Test that asserting coupled model with all submodels atomic does not fail compilation
  */
 
-#include <cadmium/basic_model/pdevs/passive.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/modeling/ports.hpp>
+#include <cadmia/basic_model/pdevs/passive.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/modeling/ports.hpp>
 
 #include <tuple>
 

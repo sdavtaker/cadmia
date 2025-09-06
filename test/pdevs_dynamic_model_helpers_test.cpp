@@ -27,11 +27,11 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <cadmium/modeling/message_bag.hpp>
-#include <cadmium/modeling/dynamic_message_bag.hpp>
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/dynamic_models_helpers.hpp>
-#include <cadmium/modeling/dynamic_model_translator.hpp>
+#include <cadmia/modeling/message_bag.hpp>
+#include <cadmia/modeling/dynamic_message_bag.hpp>
+#include <cadmia/modeling/ports.hpp>
+#include <cadmia/modeling/dynamic_models_helpers.hpp>
+#include <cadmia/modeling/dynamic_model_translator.hpp>
 
 #include <typeindex>
 #include <any>

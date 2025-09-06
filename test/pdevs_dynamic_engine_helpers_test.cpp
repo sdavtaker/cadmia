@@ -30,12 +30,12 @@
 #include <typeindex>
 #include <any>
 
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/modeling/dynamic_message_bag.hpp>
-#include <cadmium/modeling/dynamic_models_helpers.hpp>
-#include <cadmium/engine/pdevs_dynamic_engine_helpers.hpp>
-#include <cadmium/engine/pdevs_engine_helpers.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
+#include <cadmia/modeling/dynamic_message_bag.hpp>
+#include <cadmia/modeling/dynamic_models_helpers.hpp>
+#include <cadmia/engine/pdevs_dynamic_engine_helpers.hpp>
+#include <cadmia/engine/pdevs_engine_helpers.hpp>
 
 /**
   * This test is for some common helper functions used by the dynamic simulator and coordinator classes

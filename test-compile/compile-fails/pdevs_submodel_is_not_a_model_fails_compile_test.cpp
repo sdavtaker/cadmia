@@ -28,8 +28,8 @@
 /**
  * Test that failing to declare valid submodels in a coupled model fails compilation
  */
-#include <cadmium/concept/coupled_model_assert.hpp>
-#include <cadmium/modeling/coupling.hpp>
+#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/modeling/coupling.hpp>
 
 using input_ports_c1  = std::tuple<>;
 using output_ports_c1 = std::tuple<>;

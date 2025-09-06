@@ -26,12 +26,12 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-#include <cadmium/logger/tuple_to_ostream.hpp>
-#include <cadmium/basic_model/pdevs/int_generator_one_sec.hpp>
-#include <cadmium/basic_model/pdevs/filter_first_output.hpp>
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/engine/pdevs_runner.hpp>
+#include <cadmia/logger/tuple_to_ostream.hpp>
+#include <cadmia/basic_model/pdevs/int_generator_one_sec.hpp>
+#include <cadmia/basic_model/pdevs/filter_first_output.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/engine/pdevs_runner.hpp>
 
 
 /**

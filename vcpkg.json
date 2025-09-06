@@ -1,6 +1,6 @@
 {
-  "name": "cadmium",
-  "version-string": "0.1.0",
+  "name": "cadmia",
+  "version-string": "0.3.0",
   "dependencies": [
     "catch2"
   ]

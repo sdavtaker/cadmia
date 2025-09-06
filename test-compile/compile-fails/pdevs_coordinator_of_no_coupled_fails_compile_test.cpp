@@ -25,7 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cadmium/engine/pdevs_coordinator.hpp>
+#include <cadmia/engine/pdevs_coordinator.hpp>
 template <typename TIME> struct fail_model {};
 
 int main() {

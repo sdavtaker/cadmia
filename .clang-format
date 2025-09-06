@@ -9,7 +9,7 @@ NamespaceIndentation: All
 SortIncludes: true
 IncludeBlocks: Regroup
 IncludeCategories:
-    - Regex: '^(<|\")cadmium/.*'
+    - Regex: '^(<|\")cadmia/.*'
       Priority: 1
     - Regex: '.*'
       Priority: 2

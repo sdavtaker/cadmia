@@ -29,7 +29,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <tuple>
 #include <sstream>
-#include <cadmium/logger/tuple_to_ostream.hpp>
+#include <cadmia/logger/tuple_to_ostream.hpp>
 
 using namespace cadmium; // for operator<< on tuples
 

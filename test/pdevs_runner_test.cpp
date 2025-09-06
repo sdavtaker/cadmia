@@ -31,13 +31,13 @@
 #include <sstream>
 #include <typeinfo>
 
-#include <cadmium/logger/tuple_to_ostream.hpp>
-#include <cadmium/basic_model/pdevs/int_generator_one_sec.hpp>
-#include <cadmium/basic_model/pdevs/reset_generator_five_sec.hpp>
-#include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/engine/pdevs_runner.hpp>
+#include <cadmia/logger/tuple_to_ostream.hpp>
+#include <cadmia/basic_model/pdevs/int_generator_one_sec.hpp>
+#include <cadmia/basic_model/pdevs/reset_generator_five_sec.hpp>
+#include <cadmia/basic_model/pdevs/generator.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/modeling/coupling.hpp>
+#include <cadmia/engine/pdevs_runner.hpp>
 
 /**
   This test suite is running basic models that were tested in other suites before

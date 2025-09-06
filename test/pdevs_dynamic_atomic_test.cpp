@@ -26,9 +26,9 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/modeling/dynamic_atomic.hpp>
-#include <cadmium/modeling/dynamic_model_translator.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/modeling/dynamic_atomic.hpp>
+#include <cadmia/modeling/dynamic_model_translator.hpp>
 
 #include <type_traits>
 #include <memory>

@@ -26,9 +26,9 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-#include <cadmium/modeling/message_bag.hpp>
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/concept/concept_helpers.hpp>
+#include <cadmia/modeling/message_bag.hpp>
+#include <cadmia/basic_model/pdevs/accumulator.hpp>
+#include <cadmia/concept/concept_helpers.hpp>
 #include <cmath>
 #include <stdexcept>
 

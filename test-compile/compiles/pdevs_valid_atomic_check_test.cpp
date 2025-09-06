@@ -29,9 +29,9 @@
  * Test that a valid atomic model does not stop compilation on atomic_model_assert.
  */
 
-#include <cadmium/concept/atomic_model_assert.hpp>
-#include <cadmium/modeling/message_bag.hpp>
-#include <cadmium/modeling/ports.hpp>
+#include <cadmia/concept/atomic_model_assert.hpp>
+#include <cadmia/modeling/message_bag.hpp>
+#include <cadmia/modeling/ports.hpp>
 
 #include <tuple>
 

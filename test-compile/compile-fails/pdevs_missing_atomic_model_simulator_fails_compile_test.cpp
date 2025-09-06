@@ -29,9 +29,9 @@
  * Test that simulator validates models at compile time
  */
 
-#include <cadmium/engine/pdevs_simulator.hpp>
-#include <cadmium/modeling/message_bag.hpp>
-#include <cadmium/modeling/ports.hpp>
+#include <cadmia/engine/pdevs_simulator.hpp>
+#include <cadmia/modeling/message_bag.hpp>
+#include <cadmia/modeling/ports.hpp>
 
 #include <tuple>
 

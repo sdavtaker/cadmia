@@ -7,7 +7,7 @@ endif()
 cmake_minimum_required(VERSION 3.28)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
 project(
-    cadmium
+    CadmIA
     VERSION 0.3.0)
 
 # Enable C++23 standard globally
@@ -41,15 +41,15 @@ ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 
 find_package(Catch2 CONFIG REQUIRED)
 
-add_library(cadmium INTERFACE)
-add_library(cadmium::cadmium ALIAS cadmium)
+add_library(cadmia INTERFACE)
+add_library(cadmia::cadmia ALIAS cadmia)
 
-target_include_directories(cadmium INTERFACE
+target_include_directories(cadmia INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         )
 
-target_compile_features(cadmium INTERFACE cxx_std_23)
+target_compile_features(cadmia INTERFACE cxx_std_23)
 
 enable_testing()
 
@@ -58,7 +58,7 @@ FILE(GLOB TestSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*_test.cpp)
 foreach (testSrc ${TestSources})
     get_filename_component(testName ${testSrc} NAME_WE)
     add_executable(${testName} ${testSrc})
-    target_link_libraries(${testName} PUBLIC cadmium Catch2::Catch2WithMain)
+    target_link_libraries(${testName} PUBLIC cadmia Catch2::Catch2WithMain)
     add_test(${testName} ${testName})
 endforeach ()
 
@@ -70,8 +70,8 @@ foreach (testCompSrc ${TestCompileSources})
     set_target_properties(${testCompName} PROPERTIES
             EXCLUDE_FROM_ALL TRUE
             EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-    target_include_directories(${testCompName} PUBLIC cadmium test-compile/compiles)
-    target_link_libraries(${testCompName} PUBLIC cadmium)
+    target_include_directories(${testCompName} PUBLIC cadmia test-compile/compiles)
+    target_link_libraries(${testCompName} PUBLIC cadmia)
     add_test(NAME ${testCompName}
             COMMAND ${CMAKE_COMMAND} --build . --target ${testCompName}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -85,8 +85,8 @@ foreach (testCmpFailSrc ${TestCompileFailSources})
     set_target_properties(${testCmpFailName} PROPERTIES
             EXCLUDE_FROM_ALL TRUE
             EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-    target_include_directories(${testCmpFailName} PUBLIC cadmium test-compile/compiles)
-    target_link_libraries(${testCmpFailName} PUBLIC cadmium)
+    target_include_directories(${testCmpFailName} PUBLIC cadmia test-compile/compiles)
+    target_link_libraries(${testCmpFailName} PUBLIC cadmia)
     add_test(NAME ${testCmpFailName}
             COMMAND ${CMAKE_COMMAND} --build . --target ${testCmpFailName}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -98,38 +98,38 @@ FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/pdevs/main-*.cpp
 foreach (exampleSrc ${Examples})
     get_filename_component(exampleName ${exampleSrc} NAME_WE)
     add_executable(${exampleName} ${exampleSrc})
-    target_link_libraries(${exampleName} PUBLIC cadmium)
+    target_link_libraries(${exampleName} PUBLIC cadmia)
 endforeach ()
 
-#CMake packaging to allow other projects to include cadmium
-message("packaging cadmium to be consumed")
+#CMake packaging to allow other projects to include cadmia
+message("packaging cadmia to be consumed")
 include(GNUInstallDirs)
 
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/cadmium/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cadmium)
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/cadmia/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cadmia)
 
 
 include(CMakePackageConfigHelpers)
 
-install(TARGETS cadmium EXPORT cadmium)
+install(TARGETS cadmia EXPORT cadmia)
 
-install(EXPORT cadmium
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cadmium"
-        NAMESPACE cadmium::
-        FILE cadmiumConfig.cmake
+install(EXPORT cadmia
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cadmia"
+    NAMESPACE cadmia::
+    FILE cadmiaConfig.cmake
         )
 
 write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/cadmiumConfigVersion.cmake
+    ${CMAKE_BINARY_DIR}/cadmiaConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion)
 
 install(
     FILES
-    ${CMAKE_BINARY_DIR}/cadmiumConfigVersion.cmake
+    ${CMAKE_BINARY_DIR}/cadmiaConfigVersion.cmake
     DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}/cmake/cadmium)
+    ${CMAKE_INSTALL_LIBDIR}/cmake/cadmia)
 
 # Formatting targets (clang-format)
 # Creates:
