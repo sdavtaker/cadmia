@@ -29,17 +29,17 @@
 *.app
 
 # QtCreator project files
-cadmium.config
-cadmium.creator
-cadmium.creator.user
-cadmium.files
-cadmium.includes
+cadmia.config
+cadmia.creator
+cadmia.creator.user
+cadmia.files
+cadmia.includes
 
 #idea
 .idea
 
 #Xcode project files
-Cadmium.xcodeproj
+Cadmia.xcodeproj
 
 #Cmake
 cmake-build-debug
@@ -56,18 +56,11 @@ Debug
 test_executable*
 *_example
 Testing
-Cadmium.build
+Cadmia.build
 coverage.info
 
 # MacOS
 .DS_Store
-
-# Cell-DEVS examples log files
-example/celldevs/simulation_results/
-
-# JSON
-json/
-!include/cadmium/json
 
 # VSCode
 .vscode
