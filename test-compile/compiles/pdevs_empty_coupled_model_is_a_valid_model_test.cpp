@@ -29,10 +29,10 @@
  * Test that asserting couple over an empty coupled model is not a compile error
  */
 #include <cadmium/concept/coupled_model_assert.hpp>
+
 #include "pdevs_empty_coupled_model.hpp"
 
-
-int main(){
+int main() {
     cadmium::old_concept::pdevs::coupled_model_assert<pdevs_empty_coupled_model::type>();
     return 0;
 }

@@ -27,15 +27,13 @@
 
 #pragma once
 
-#include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/message_bag.hpp>
-#include <limits>
+#include <cadmium/modeling/ports.hpp>
 
-#include <stddef.h>
-
-#include <string>
 #include <fstream>
-
+#include <limits>
+#include <stddef.h>
+#include <string>
 
 using namespace std;
 
@@ -47,49 +45,46 @@ using namespace cadmium;
  * oestream_output is a simple model that prints the values passed to its
  * input port to a file.
  *
-*/
+ */
 
-template<typename MSG, typename TIME, typename PORT_TYPE>
-class oestream_output {
-    using defs=PORT_TYPE;
+template <typename MSG, typename TIME, typename PORT_TYPE> class oestream_output {
+    using defs = PORT_TYPE;
 
-public:
+  public:
     // default constructor
-    oestream_output() noexcept { }
-    oestream_output(const char* file_path) noexcept {
+    oestream_output() noexcept {}
+    oestream_output(const char *file_path) noexcept {
         state.path = file_path;
         state.file.open(state.path);
         state.currentTime = TIME("00:00:00");
     }
 
     // state definition
-    struct state_type{
-        const char* path;
+    struct state_type {
+        const char *path;
         ofstream file;
         bool prop;
         TIME currentTime;
-    }; 
+    };
     state_type state;
 
     // ports definition
-    using input_ports=std::tuple<typename defs::in>;
-    using output_ports=std::tuple<>;
+    using input_ports  = std::tuple<typename defs::in>;
+    using output_ports = std::tuple<>;
 
     // internal transition
-    void internal_transition() {
-    }
+    void internal_transition() {}
 
     // external transition
     void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
         state.currentTime += e;
-        for(const auto &x : get_messages<typename defs::in>(mbs)){
+        for (const auto &x : get_messages<typename defs::in>(mbs)) {
             state.file << state.currentTime << " " << x << "\n";
         }
     }
 
     // confluence transition
-    void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-    }
+    void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {}
 
     // output function
     typename make_message_bags<output_ports>::type output() const {
@@ -102,11 +97,10 @@ public:
         return std::numeric_limits<TIME>::infinity();
     }
 
-    friend std::ostringstream& operator<<(std::ostringstream& os, const typename oestream_output<MSG,TIME,PORT_TYPE>::state_type& i) {
+    friend std::ostringstream &
+    operator<<(std::ostringstream &os,
+               const typename oestream_output<MSG, TIME, PORT_TYPE>::state_type &i) {
         os << "";
         return os;
     }
-
-
 };
-

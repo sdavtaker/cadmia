@@ -27,56 +27,52 @@
 
 #pragma once
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/ports.hpp>
 
-#include<limits>
-#include<stdexcept>
+#include <limits>
+#include <stdexcept>
 
 namespace cadmium::basic_models::pdevs {
 
+    /**
+     * @brief Passive PDEVS Model receives messages of a particular type and never outputs.
+     *
+     * Passive PDEVS Model:
+     * - X = any (of particular type in implementation)
+     * - Y = void
+     * - In_Ports: in
+     * - Out_Ports: out
+     * - S = {}
+     * - internal( ., .) = ERROR
+     * - external( ., ., .) = {}
+     * - confluence( ., ., .) = ERROR
+     * - output (.) = ERROR
+     * - time_advance(.) = infinite
+     */
 
-/**
- * @brief Passive PDEVS Model receives messages of a particular type and never outputs.
- *
- * Passive PDEVS Model:
- * - X = any (of particular type in implementation)
- * - Y = void
- * - In_Ports: in
- * - Out_Ports: out
- * - S = {}
- * - internal( ., .) = ERROR
- * - external( ., ., .) = {}
- * - confluence( ., ., .) = ERROR
- * - output (.) = ERROR
- * - time_advance(.) = infinite
-*/
-
-    //definitions used for defining the accumulator that need to be accessed by externals resources before instantiate the models
-    //This includes Ports referenced by couplings, and
-    template<typename VALUE>
-    struct passive_defs {
-        //custom ports
-        struct in : public in_port<VALUE> {
-        };
+    // definitions used for defining the accumulator that need to be accessed by externals resources
+    // before instantiate the models This includes Ports referenced by couplings, and
+    template <typename VALUE> struct passive_defs {
+        // custom ports
+        struct in : public in_port<VALUE> {};
     };
 
-
-    template<typename VALUE, typename TIME> //VALUE is the type of X
+    template <typename VALUE, typename TIME> // VALUE is the type of X
     class passive {
-        using defs=passive_defs<VALUE>;// putting definitions in context
-    public:
+        using defs = passive_defs<VALUE>; // putting definitions in context
+      public:
         // required definitions start here
         // default constructor
         constexpr passive() noexcept {}
 
         // state definition
-        using state_type=int; //A type has to be declared and void is not allowed for variables
+        using state_type = int; // A type has to be declared and void is not allowed for variables
         state_type state = 0;
 
         // ports definition
-        using input_ports=std::tuple<typename defs::in>;
-        using output_ports=std::tuple<>; //no output ports;
+        using input_ports  = std::tuple<typename defs::in>;
+        using output_ports = std::tuple<>; // no output ports;
 
         // internal transition should never be run
         void internal_transition() {
@@ -84,8 +80,7 @@ namespace cadmium::basic_models::pdevs {
         }
 
         // external transition should do nothing
-        void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-        }
+        void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {}
 
         // confluence transition should never be run
         void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
@@ -99,9 +94,8 @@ namespace cadmium::basic_models::pdevs {
 
         // time_advance should always return infinity
         TIME time_advance() const {
-            //we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
+            // we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
             return (std::numeric_limits<TIME>::infinity());
         }
     };
-}
-
+} // namespace cadmium::basic_models::pdevs

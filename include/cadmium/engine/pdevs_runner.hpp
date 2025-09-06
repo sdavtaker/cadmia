@@ -27,12 +27,12 @@
 
 #pragma once
 
-#include <iostream>
-#include <cadmium/engine/pdevs_coordinator.hpp>
 #include <cadmium/concept/atomic_model_assert.hpp>
-#include <cadmium/logger/logger.hpp>
+#include <cadmium/engine/pdevs_coordinator.hpp>
 #include <cadmium/logger/common_loggers.hpp>
+#include <cadmium/logger/logger.hpp>
 
+#include <iostream>
 
 namespace cadmium {
     namespace engine {
@@ -47,60 +47,70 @@ namespace cadmium {
          * @param Logger what, where and how to log from the simulation
          */
 
-        //by default state changes get verbatim formatted and logged to cout
-        template<typename TIME>
-        using default_logger=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::formatter<TIME>, cadmium::logger::cout_sink_provider>;
+        // by default state changes get verbatim formatted and logged to cout
+        template <typename TIME>
+        using default_logger =
+            cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::formatter<TIME>,
+                                    cadmium::logger::cout_sink_provider>;
 
-        //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
-        template <class TIME, template<class> class MODEL, typename LOGGER=default_logger<TIME>>
-        class runner{
-            TIME _next; //next scheduled event
+        // TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no
+        // parametrized FEL.
+        template <class TIME, template <class> class MODEL, typename LOGGER = default_logger<TIME>>
+        class runner {
+            TIME _next; // next scheduled event
 
-            //TODO: handle the case that the model received is an atomic model.
-            cadmium::engine::coordinator<MODEL, TIME, LOGGER> top_coordinator; //this only works for coupled models.
+            // TODO: handle the case that the model received is an atomic model.
+            cadmium::engine::coordinator<MODEL, TIME, LOGGER>
+                top_coordinator; // this only works for coupled models.
 
-        public:
-            //contructors
+          public:
+            // contructors
             /**
              * @brief set the dynamic parameters for the simulation
              * @param init_time is the initial time of the simulation.
              */
-            explicit runner(const TIME& init_time){
-                LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
-                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
+            explicit runner(const TIME &init_time) {
+                LOGGER::template log<cadmium::logger::logger_global_time,
+                                     cadmium::logger::run_global_time>(init_time);
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>(
+                    "Preparing model");
                 top_coordinator.init(init_time);
                 _next = top_coordinator.next();
             }
 
             /**
-             * @brief runUntil starts the simulation and stops when the next event is scheduled after t.
+             * @brief runUntil starts the simulation and stops when the next event is scheduled
+             * after t.
              * @param t is the limit time for the simulation.
              * @return the TIME of the next event to happen when simulation stopped.
              */
             TIME run_until(const TIME &t) {
-                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
-                while (_next < t){
-                    LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>(
+                    "Starting run");
+                while (_next < t) {
+                    LOGGER::template log<cadmium::logger::logger_global_time,
+                                         cadmium::logger::run_global_time>(_next);
                     top_coordinator.collect_outputs(_next);
                     top_coordinator.advance_simulation(_next);
                     _next = top_coordinator.next();
                 }
-                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>(
+                    "Finished run");
                 return _next;
             }
 
             /**
-             * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
+             * @brief runUntilPassivate starts the simulation and stops when there is no next
+             * internal event to happen.
              */
             void run_until_passivate() {
-                #ifndef RT_ARM_MBED
-                  static_assert(std::numeric_limits<TIME>::has_infinity, "TIME datatype has no infinity defined");
-                #endif
-                
+#ifndef RT_ARM_MBED
+                static_assert(std::numeric_limits<TIME>::has_infinity,
+                              "TIME datatype has no infinity defined");
+#endif
+
                 run_until(std::numeric_limits<TIME>::infinity());
             }
         };
-    }
-}
-
-
+    } // namespace engine
+} // namespace cadmium

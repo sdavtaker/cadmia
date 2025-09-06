@@ -26,40 +26,37 @@
 
 #pragma once
 
-#include<optional>
-#include<tuple>
+#include <optional>
+#include <tuple>
 
 /**
  * Here we declare the tools to manage messages in the context of DEVS models.
  * A message box is a set of ports that can receive optional messages in each port.
  */
 namespace cadmium {
-    template<typename PORT>
-    struct message_box {
-        using port=PORT;
-        using message_type=typename PORT::message_type;
+    template <typename PORT> struct message_box {
+        using port         = PORT;
+        using message_type = typename PORT::message_type;
 
         std::optional<message_type> message;
     };
 
-    template<typename... Ps>
-    std::tuple<message_box<Ps>...> make_message_box_impl(std::tuple<Ps...>){
-            return std::tuple<message_box<Ps>...>{};
+    template <typename... Ps>
+    std::tuple<message_box<Ps>...> make_message_box_impl(std::tuple<Ps...>) {
+        return std::tuple<message_box<Ps>...>{};
     }
 
-    template<typename T>
-    struct make_message_box{
-        using type=decltype(make_message_box_impl(T{}));
+    template <typename T> struct make_message_box {
+        using type = decltype(make_message_box_impl(T{}));
     };
 
-    template<typename PORT, typename T>
-    std::optional<typename message_box<PORT>::message_type> & get_message(T& mb){
+    template <typename PORT, typename T>
+    std::optional<typename message_box<PORT>::message_type> &get_message(T &mb) {
         return std::get<message_box<PORT>>(mb).message;
     }
 
-    template<typename PORT, typename T>
-    const std::optional<typename message_box<PORT>::message_type> & get_message(const T& mb){
+    template <typename PORT, typename T>
+    const std::optional<typename message_box<PORT>::message_type> &get_message(const T &mb) {
         return std::get<message_box<PORT>>(mb).message;
     }
-}
-
+} // namespace cadmium

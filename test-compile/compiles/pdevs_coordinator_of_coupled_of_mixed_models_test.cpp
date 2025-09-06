@@ -25,11 +25,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "pdevs_coupled_of_mixed_models.hpp"
 #include <cadmium/engine/pdevs_coordinator.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
-int main(){
+#include "pdevs_coupled_of_mixed_models.hpp"
+
+int main() {
     cadmium::engine::coordinator<coupled_of_mixed_models, float, cadmium::logger::not_logger> cc;
     return 0;
 }

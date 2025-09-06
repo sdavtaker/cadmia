@@ -2,7 +2,7 @@
 /**
  * 2021 - Ezequiel Pecker-Marcosig
  * Universidad de Buenos Aires
- * 
+ *
  * Copyright (c) 2018-2025, Damian Vicino, Laouen M. L. Belloli
  * Carleton University, Universite de Nice-Sophia Antipolis, Universidad de Buenos Aires
  * All rights reserved.
@@ -31,7 +31,8 @@
 #pragma once
 
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
-#include<limits>
+
+#include <limits>
 
 namespace cadmium {
     namespace dynamic {
@@ -47,44 +48,55 @@ namespace cadmium {
              * @param Logger what, where and how to log from the simulation
              */
 
-            //by default state changes get verbatim formatted and logged to cout
-            template<typename TIME>
-            using default_logger=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::dynamic::logger::formatter<TIME>, cadmium::logger::cout_sink_provider>;
+            // by default state changes get verbatim formatted and logged to cout
+            template <typename TIME>
+            using default_logger =
+                cadmium::logger::logger<cadmium::logger::logger_state,
+                                        cadmium::dynamic::logger::formatter<TIME>,
+                                        cadmium::logger::cout_sink_provider>;
 
-            //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
-            template<class TIME, typename LOGGER=default_logger<TIME>>
-            class runner {
+            // TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no
+            // parametrized FEL.
+            template <class TIME, typename LOGGER = default_logger<TIME>> class runner {
                 TIME _last;
-                TIME _next; //next scheduled event
+                TIME _next; // next scheduled event
 
                 bool progress_bar = false;
 
-                cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
+                cadmium::dynamic::engine::coordinator<TIME, LOGGER>
+                    _top_coordinator; // this only works for coupled models.
 
-            public:
-                //contructors
+              public:
+                // contructors
                 /**
                  * @brief set the dynamic parameters for the simulation
                  * @param init_time is the initial time of the simulation.
                  */
 
-                explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time)
-                : _top_coordinator(coupled_model){
-                    LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
+                explicit runner(
+                    std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model,
+                    const TIME &init_time)
+                    : _top_coordinator(coupled_model) {
+                    LOGGER::template log<cadmium::logger::logger_global_time,
+                                         cadmium::logger::run_global_time>(init_time);
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>(
+                        "Preparing model");
                     _top_coordinator.init(init_time);
                     _next = _top_coordinator.next();
                 }
 
                 /**
-                 * @brief runUntil starts the simulation and stops when the next event is scheduled after t.
+                 * @brief runUntil starts the simulation and stops when the next event is scheduled
+                 * after t.
                  * @param t is the limit time for the simulation.
                  * @return the TIME of the next event to happen when simulation stopped.
                  */
                 TIME run_until(const TIME &t) {
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>(
+                        "Starting run");
                     while (_next < t) {
-                        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
+                        LOGGER::template log<cadmium::logger::logger_global_time,
+                                             cadmium::logger::run_global_time>(_next);
                         _top_coordinator.collect_outputs(_next);
                         _top_coordinator.advance_simulation(_next);
                         _next = _top_coordinator.next();
@@ -94,12 +106,14 @@ namespace cadmium {
                     }
 
                     turn_progress_off();
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>(
+                        "Finished run");
                     return _next;
                 }
 
                 /**
-                 * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
+                 * @brief runUntilPassivate starts the simulation and stops when there is no next
+                 * internal event to happen.
                  */
                 void run_until_passivate() {
                     run_until(std::numeric_limits<TIME>::infinity());
@@ -108,12 +122,11 @@ namespace cadmium {
                 /**
                  * @brief Displays current progress of simulation
                  *  e.g., [50/500]
-                 * 
+                 *
                  * @param current Current time step
                  * @param total Maximum timestep (can be infinity)
                  */
-                void progress_bar_meter(TIME current, TIME total)
-                {
+                void progress_bar_meter(TIME current, TIME total) {
                     std::cout << "\r[" << current << "/";
 
                     if (total == std::numeric_limits<TIME>::infinity())
@@ -124,10 +137,15 @@ namespace cadmium {
                     std::cout << std::flush;
                 }
 
-                void turn_progress_on()  { progress_bar = true;  std::cout << "\033[33m" << std::flush;  }
-                void turn_progress_off() { progress_bar = false; std::cout << "\033[0m"  << std::flush;  }
+                void turn_progress_on() {
+                    progress_bar = true;
+                    std::cout << "\033[33m" << std::flush;
+                }
+                void turn_progress_off() {
+                    progress_bar = false;
+                    std::cout << "\033[0m" << std::flush;
+                }
             };
-        }
-    }
-}
-
+        } // namespace engine
+    } // namespace dynamic
+} // namespace cadmium

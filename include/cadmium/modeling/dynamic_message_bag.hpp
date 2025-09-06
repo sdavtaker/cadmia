@@ -35,5 +35,4 @@ namespace cadmium {
     namespace dynamic {
         using message_bags = std::map<std::type_index, std::any>;
     }
-}
-
+} // namespace cadmium

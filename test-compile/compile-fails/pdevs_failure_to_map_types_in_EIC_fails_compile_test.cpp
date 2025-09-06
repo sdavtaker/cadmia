@@ -26,28 +26,28 @@
  */
 
 /**
- * Test that failing to declare the right EIC specification in a coupled model fails compilation when asserted
+ * Test that failing to declare the right EIC specification in a coupled model fails compilation
+ * when asserted
  */
 #include <cadmium/basic_model/pdevs/passive.hpp>
+#include <cadmium/concept/coupled_model_assert.hpp>
 #include <cadmium/modeling/coupling.hpp>
 #include <cadmium/modeling/ports.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
 
-template<typename TIME>
-using passive = cadmium::basic_models::pdevs::passive<int, TIME>;
-using passive_in = cadmium::basic_models::pdevs::passive_defs<int>::in;
+template <typename TIME> using passive = cadmium::basic_models::pdevs::passive<int, TIME>;
+using passive_in                       = cadmium::basic_models::pdevs::passive_defs<int>::in;
 
-struct in : public cadmium::in_port<float> {
-};
-using input_ports=std::tuple<in>;
-using output_ports=std::tuple<>;
+struct in : public cadmium::in_port<float> {};
+using input_ports  = std::tuple<in>;
+using output_ports = std::tuple<>;
 
 using submodels = cadmium::modeling::models_tuple<passive>;
-using EICs = std::tuple<cadmium::modeling::EIC<in, passive, passive_in>>;
-using EOCs = std::tuple<>;
-using ICs = std::tuple<>;
-template<typename TIME>
-using C1 = cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+using EICs      = std::tuple<cadmium::modeling::EIC<in, passive, passive_in>>;
+using EOCs      = std::tuple<>;
+using ICs       = std::tuple<>;
+template <typename TIME>
+using C1 = cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs,
+                                                   EOCs, ICs>;
 
 int main() {
     cadmium::old_concept::coupled_model_assert<C1>();

@@ -29,36 +29,34 @@
  * Test that a valid atomic model does not stop compilation on atomic_model_assert.
  */
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
+#include <cadmium/concept/atomic_model_assert.hpp>
+#include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/ports.hpp>
 
+#include <tuple>
 
 /**
-* Test that when an atomic model has duplicated output ports, atomic_model_assert fails compilation */
-template<typename TIME>
-struct devs_atomic_model_with_repeated_output_ports {
-    struct in : public cadmium::in_port<int> {
-    };
+ * Test that when an atomic model has duplicated output ports, atomic_model_assert fails compilation
+ */
+template <typename TIME> struct devs_atomic_model_with_repeated_output_ports {
+    struct in : public cadmium::in_port<int> {};
 
-    struct out_one : public cadmium::out_port<int> {
-    };
-    struct out_two : public cadmium::out_port<int> {
-    };
+    struct out_one : public cadmium::out_port<int> {};
+    struct out_two : public cadmium::out_port<int> {};
 
     constexpr devs_atomic_model_with_repeated_output_ports() noexcept {}
 
-    using state_type=int;
-    state_type state = 0;
-    using input_ports=std::tuple<in>;
-    using output_ports=std::tuple<out_one, out_two, out_one>;
+    using state_type   = int;
+    state_type state   = 0;
+    using input_ports  = std::tuple<in>;
+    using output_ports = std::tuple<out_one, out_two, out_one>;
 
     void internal_transition() {}
 
     void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {}
 
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {}
+    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {
+    }
 
     typename cadmium::make_message_bags<output_ports>::type output() const {}
 
@@ -66,5 +64,6 @@ struct devs_atomic_model_with_repeated_output_ports {
 };
 
 int main() {
-    cadmium::old_concept::pdevs::atomic_model_assert<devs_atomic_model_with_repeated_output_ports>();
+    cadmium::old_concept::pdevs::atomic_model_assert<
+        devs_atomic_model_with_repeated_output_ports>();
 }

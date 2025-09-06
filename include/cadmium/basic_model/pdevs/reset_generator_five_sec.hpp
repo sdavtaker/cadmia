@@ -25,22 +25,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #pragma once
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/modeling/message_bag.hpp>
-#include<cadmium/basic_model/pdevs/accumulator.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
+#include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/ports.hpp>
 
-#include<limits>
-#include<stdexcept>
-
+#include <limits>
+#include <stdexcept>
 
 namespace cadmium::basic_models::pdevs {
-    template<typename TIME>
-    using test_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
-    using test_accumulator_defs=cadmium::basic_models::pdevs::accumulator_defs<int>;
-    using reset_tick=cadmium::basic_models::pdevs::accumulator_defs<int>::reset_tick;
+    template <typename TIME>
+    using test_accumulator      = cadmium::basic_models::pdevs::accumulator<int, TIME>;
+    using test_accumulator_defs = cadmium::basic_models::pdevs::accumulator_defs<int>;
+    using reset_tick            = cadmium::basic_models::pdevs::accumulator_defs<int>::reset_tick;
 
     /**
      * @brief Generator PDEVS Model
@@ -55,26 +53,24 @@ namespace cadmium::basic_models::pdevs {
      * - advance(phase, t) = 5 - t
      */
 
-    //definitions used for defining the accumulator that need to be accessed by externals resources before instantiate the models
-    //This includes Ports referenced by couplings, and
+    // definitions used for defining the accumulator that need to be accessed by externals resources
+    // before instantiate the models This includes Ports referenced by couplings, and
 
     struct reset_generator_five_sec_defs {
-        //custom ports
-        struct out : public out_port<reset_tick> {
-        };
+        // custom ports
+        struct out : public out_port<reset_tick> {};
     };
 
-
-    template<typename TIME> //VALUE is the type of Y
+    template <typename TIME> // VALUE is the type of Y
     class reset_generator_five_sec {
-        using defs=reset_generator_five_sec_defs;// putting definitions in context
-    public:
-        //these functions need to be overriden to define the generator behavior
+        using defs = reset_generator_five_sec_defs; // putting definitions in context
+      public:
+        // these functions need to be overriden to define the generator behavior
         TIME period() const { // time between consecutive messages
             return 5.0;
         }
 
-        reset_tick output_message() const {// message to be output
+        reset_tick output_message() const { // message to be output
             return reset_tick{};
         }
 
@@ -83,12 +79,12 @@ namespace cadmium::basic_models::pdevs {
         constexpr reset_generator_five_sec() noexcept {}
 
         // state definition
-        using state_type=int;
+        using state_type = int;
         state_type state = 0;
 
         // ports definition
-        using input_ports=std::tuple<>;
-        using output_ports=std::tuple<typename defs::out>;
+        using input_ports  = std::tuple<>;
+        using output_ports = std::tuple<typename defs::out>;
 
         // internal transition
         void internal_transition() {}
@@ -112,9 +108,8 @@ namespace cadmium::basic_models::pdevs {
 
         // time_advance function
         TIME time_advance() const {
-            //we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
+            // we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
             return period();
         }
     };
-}
-
+} // namespace cadmium::basic_models::pdevs

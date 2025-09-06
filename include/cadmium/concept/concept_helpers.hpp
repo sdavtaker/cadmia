@@ -27,86 +27,77 @@
 
 #pragma once
 
-#include<tuple>
+#include <tuple>
 
 namespace cadmium {
     namespace old_concept {
 
+        template <template <typename> class MODEL> struct is_atomic {
+            struct atomic_detected {};
+            struct coupled_detected {};
 
-        template<template<typename> class MODEL>
-        struct is_atomic{
-            struct atomic_detected{};
-            struct coupled_detected{};
+            template <typename M>
+            static coupled_detected test(typename M::template models<float> *);
+            template <typename M> static atomic_detected test(...);
 
-            template <typename M> static coupled_detected test( typename M::template models<float>* );
-            template <typename M> static atomic_detected test( ...  ) ;
-
-            static constexpr bool value(){
+            static constexpr bool value() {
                 return std::is_same<decltype(test<MODEL<float>>(0)), atomic_detected>::value;
             }
         };
 
-        namespace { //details
-            template<typename, template<typename...> class>
+        namespace { // details
+            template <typename, template <typename...> class>
             struct is_specialization : std::false_type {};
-            template<template<typename...> class TEMP, typename... ARGS>
-            struct is_specialization<TEMP<ARGS...>, TEMP>: std::true_type {};
-            
-            template<typename T>
-            constexpr bool is_tuple(){
+            template <template <typename...> class TEMP, typename... ARGS>
+            struct is_specialization<TEMP<ARGS...>, TEMP> : std::true_type {};
+
+            template <typename T> constexpr bool is_tuple() {
                 return is_specialization<T, std::tuple>::value;
             }
-            
-            template<typename T, int S>
-            struct check_unique_elem_types_impl {
+
+            template <typename T, int S> struct check_unique_elem_types_impl {
                 static constexpr bool value() {
-                    using elem=typename std::tuple_element<S - 1, T>::type;
-                    (void) std::get<elem>(T{});
+                    using elem = typename std::tuple_element<S - 1, T>::type;
+                    (void)std::get<elem>(T{});
                     return check_unique_elem_types_impl<T, S - 1>::value();
                 }
             };
 
-            template<typename T>
-            struct check_unique_elem_types_impl<T, 0> {
+            template <typename T> struct check_unique_elem_types_impl<T, 0> {
                 static constexpr bool value() {
                     return true;
                 }
             };
 
-            template<typename T>
-            struct check_unique_elem_types {
+            template <typename T> struct check_unique_elem_types {
                 static constexpr bool value() {
                     return check_unique_elem_types_impl<T, std::tuple_size<T>::value>::value();
                 }
             };
 
-
-
-            template<typename PORT, typename TUPLE, int S>
-            struct has_port_in_tuple_impl{
-                static constexpr bool value(){
-                    if (std::is_same<PORT, typename std::tuple_element<S-1, TUPLE>::type>()){
+            template <typename PORT, typename TUPLE, int S> struct has_port_in_tuple_impl {
+                static constexpr bool value() {
+                    if (std::is_same<PORT, typename std::tuple_element<S - 1, TUPLE>::type>()) {
                         return true;
                     } else {
-                        return has_port_in_tuple_impl<PORT, TUPLE, S-1>::value();
+                        return has_port_in_tuple_impl<PORT, TUPLE, S - 1>::value();
                     }
                 }
             };
 
-            template<typename PORT, typename TUPLE>
-            struct has_port_in_tuple_impl<PORT, TUPLE, 0>{
-                static constexpr bool value(){
+            template <typename PORT, typename TUPLE> struct has_port_in_tuple_impl<PORT, TUPLE, 0> {
+                static constexpr bool value() {
                     return false;
                 }
             };
 
-            template<typename PORT, typename TUPLE>
-            struct has_port_in_tuple{
-                static constexpr bool value(){
-                    return has_port_in_tuple_impl<PORT, TUPLE, std::tuple_size<TUPLE>::value>::value();
+            template <typename PORT, typename TUPLE> struct has_port_in_tuple {
+                static constexpr bool value() {
+                    return has_port_in_tuple_impl<PORT, TUPLE,
+                                                  std::tuple_size<TUPLE>::value>::value();
                 }
             };
 
-        }
-    }
-}
+        } // namespace
+    } // namespace old_concept
+} // namespace cadmium

@@ -26,17 +26,19 @@
  */
 
 /**
- * Test that when input ports of a coupled model are not defined as a tuple the coupling fails compilation
+ * Test that when input ports of a coupled model are not defined as a tuple the coupling fails
+ * compilation
  */
-int main(){
-    using input_ports=std::vector<>;
-    using output_ports=std::tuple<>;
+int main() {
+    using input_ports  = std::vector<>;
+    using output_ports = std::tuple<>;
 
     using submodels = cadmium::modeling::models_tuple<>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<>;
-    using ICs = std::tuple<>;
-    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+    using EICs      = std::tuple<>;
+    using EOCs      = std::tuple<>;
+    using ICs       = std::tuple<>;
+    using C1 =
+        cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
 
     cadmium::old_concept::coupled_model_assert<C1>();
     return 0;

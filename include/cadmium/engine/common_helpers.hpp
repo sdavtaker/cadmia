@@ -27,18 +27,17 @@
 
 #pragma once
 
+#include <sstream>
 #include <tuple>
 #include <vector>
-#include <sstream>
 
 namespace cadmium {
     namespace helper {
 
-        //Generic tuple for_each function
-        template<typename TUPLE, typename FUNC>
-        void for_each(TUPLE& ts, FUNC&& f) {
+        // Generic tuple for_each function
+        template <typename TUPLE, typename FUNC> void for_each(TUPLE &ts, FUNC &&f) {
 
-            auto for_each_fold_expression = [&f](auto &... e)->void { (f(e) , ...); };
+            auto for_each_fold_expression = [&f](auto &...e) -> void { (f(e), ...); };
             std::apply(for_each_fold_expression, ts);
         }
 
@@ -50,7 +49,7 @@ namespace cadmium {
                 oss << *it;
                 ++it;
             }
-            while (it != v.end()){
+            while (it != v.end()) {
                 oss << ", ";
                 oss << *it;
                 ++it;
@@ -59,6 +58,5 @@ namespace cadmium {
             return oss.str();
         }
 
-    }
-}
-
+    } // namespace helper
+} // namespace cadmium

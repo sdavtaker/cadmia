@@ -25,14 +25,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #pragma once
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/modeling/message_bag.hpp>
-#include<limits>
-#include<cassert>
+#include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/ports.hpp>
 
+#include <cassert>
+#include <limits>
 
 namespace cadmium::basic_models::pdevs {
 
@@ -46,28 +45,24 @@ namespace cadmium::basic_models::pdevs {
      */
 
     struct filter_first_output_defs {
-        //ports
-        struct in : public in_port<int> {
-        };
-        struct out : public out_port<int> {
-        };
+        // ports
+        struct in : public in_port<int> {};
+        struct out : public out_port<int> {};
     };
 
-
-    template<typename TIME>
-    class filter_first_output {
-        using defs=filter_first_output_defs;// putting definitions in context
-    public:
-        //state
-        using state_type=int;
+    template <typename TIME> class filter_first_output {
+        using defs = filter_first_output_defs; // putting definitions in context
+      public:
+        // state
+        using state_type = int;
         state_type state = 0;
 
-        //default constructor
+        // default constructor
         constexpr filter_first_output() noexcept {}
 
-        //ports_definition
-        using input_ports=std::tuple<typename defs::in>;
-        using output_ports=std::tuple<typename defs::out>;
+        // ports_definition
+        using input_ports  = std::tuple<typename defs::in>;
+        using output_ports = std::tuple<typename defs::out>;
 
         // PDEVS functions
         void internal_transition() {
@@ -79,7 +74,7 @@ namespace cadmium::basic_models::pdevs {
         }
 
         void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-            assert(false); //test should not call confluence
+            assert(false); // test should not call confluence
         }
 
         typename make_message_bags<output_ports>::type output() const {
@@ -92,6 +87,4 @@ namespace cadmium::basic_models::pdevs {
             return (state == 1 ? TIME{} : std::numeric_limits<TIME>::infinity());
         }
     };
-}
-
-
+} // namespace cadmium::basic_models::pdevs

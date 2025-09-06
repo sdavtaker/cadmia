@@ -29,66 +29,59 @@
  * Test that asserting coupled model with all submodels atomic does not fail compilation
  */
 
+#include <cadmium/basic_model/pdevs/passive.hpp>
+#include <cadmium/concept/coupled_model_assert.hpp>
+#include <cadmium/modeling/coupling.hpp>
+#include <cadmium/modeling/ports.hpp>
+
 #include <tuple>
 
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
-#include <cadmium/basic_model/pdevs/passive.hpp>
-
 using namespace cadmium;
-//ports
+// ports
 struct coupled_ports {
-    //custom ports
-    struct in_1 : public in_port<float> {
-    };
-    struct in_2 : public in_port<float> {
-    };
-    struct out : public out_port<float> {
-    };
+    // custom ports
+    struct in_1 : public in_port<float> {};
+    struct in_2 : public in_port<float> {};
+    struct out : public out_port<float> {};
 };
 
-//submodels
-//passive
-template<typename TIME>
-using floating_passive=cadmium::basic_models::pdevs::passive<float, TIME>;
-using floating_passive_defs=cadmium::basic_models::pdevs::passive_defs<float>;
+// submodels
+// passive
+template <typename TIME>
+using floating_passive      = cadmium::basic_models::pdevs::passive<float, TIME>;
+using floating_passive_defs = cadmium::basic_models::pdevs::passive_defs<float>;
 
-//First level coupleds having a passive model in each
-using input_ports=std::tuple<coupled_ports::in_1, coupled_ports::in_2>;
-using output_ports=std::tuple<coupled_ports::out>;
-using submodels = cadmium::modeling::models_tuple<floating_passive>;
-using EICs = std::tuple<cadmium::modeling::EIC<coupled_ports::in_1, floating_passive, floating_passive_defs::in>>;
+// First level coupleds having a passive model in each
+using input_ports  = std::tuple<coupled_ports::in_1, coupled_ports::in_2>;
+using output_ports = std::tuple<coupled_ports::out>;
+using submodels    = cadmium::modeling::models_tuple<floating_passive>;
+using EICs         = std::tuple<
+            cadmium::modeling::EIC<coupled_ports::in_1, floating_passive, floating_passive_defs::in>>;
 using EOCs = std::tuple<>;
-using ICs = std::tuple<>;
-template<typename TIME>
-struct C1
-        : public cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs> {
-};
-template<typename TIME>
-struct C2
-        : public cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs> {
-};
-template<typename TIME>
-struct C3
-        : public cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs> {
-};
+using ICs  = std::tuple<>;
+template <typename TIME>
+struct C1 : public cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports,
+                                                           submodels, EICs, EOCs, ICs> {};
+template <typename TIME>
+struct C2 : public cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports,
+                                                           submodels, EICs, EOCs, ICs> {};
+template <typename TIME>
+struct C3 : public cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports,
+                                                           submodels, EICs, EOCs, ICs> {};
 
-//top model
+// top model
 using namespace cadmium::modeling;
-using input_ports_top=std::tuple<coupled_ports::in_1, coupled_ports::in_2>;
-using output_ports_top=std::tuple<coupled_ports::out>;
+using input_ports_top  = std::tuple<coupled_ports::in_1, coupled_ports::in_2>;
+using output_ports_top = std::tuple<coupled_ports::out>;
 
 using submodels_top = models_tuple<C1, C2, C3>;
-using EICs_top = std::tuple<
-        EIC<coupled_ports::in_1, C1, coupled_ports::in_1>,
-        EIC<coupled_ports::in_2, C2, coupled_ports::in_1>
->;
-using EOCs_top = std::tuple<>;
-using ICs_top = std::tuple<>;
-template<typename TIME>
-using C_top=cadmium::modeling::pdevs::coupled_model<TIME, input_ports_top, output_ports_top, submodels_top, EICs_top, EOCs_top, ICs_top>;
-
+using EICs_top      = std::tuple<EIC<coupled_ports::in_1, C1, coupled_ports::in_1>,
+                                 EIC<coupled_ports::in_2, C2, coupled_ports::in_1>>;
+using EOCs_top      = std::tuple<>;
+using ICs_top       = std::tuple<>;
+template <typename TIME>
+using C_top = cadmium::modeling::pdevs::coupled_model<TIME, input_ports_top, output_ports_top,
+                                                      submodels_top, EICs_top, EOCs_top, ICs_top>;
 
 int main() {
     cadmium::old_concept::pdevs::coupled_model_assert<C_top>();

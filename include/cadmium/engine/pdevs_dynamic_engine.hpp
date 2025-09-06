@@ -39,9 +39,8 @@ namespace cadmium {
              *
              * @tparam TIME
              */
-            template<typename TIME>
-            class engine {
-            public:
+            template <typename TIME> class engine {
+              public:
                 virtual void init(TIME initial_time) = 0;
 
                 virtual std::string get_model_id() const = 0;
@@ -50,15 +49,14 @@ namespace cadmium {
 
                 virtual void collect_outputs(const TIME &t) = 0;
 
-                virtual cadmium::dynamic::message_bags& outbox() = 0;
+                virtual cadmium::dynamic::message_bags &outbox() = 0;
 
-                virtual cadmium::dynamic::message_bags& inbox() = 0;
+                virtual cadmium::dynamic::message_bags &inbox() = 0;
 
                 virtual void advance_simulation(const TIME &t) = 0;
 
-                virtual ~engine(){}
+                virtual ~engine() {}
             };
-        }
-    }
-}
-
+        } // namespace engine
+    } // namespace dynamic
+} // namespace cadmium

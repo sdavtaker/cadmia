@@ -27,74 +27,72 @@
 
 #pragma once
 
-#include <cadmium/logger/logger.hpp>
 #include <cadmium/logger/common_loggers_helpers.hpp>
+#include <cadmium/logger/logger.hpp>
 
 namespace cadmium {
     namespace logger {
 
-        //Commmon sink providers
-        struct cout_sink_provider{
-            static std::ostream& sink(){
+        // Commmon sink providers
+        struct cout_sink_provider {
+            static std::ostream &sink() {
                 return std::cout;
             }
         };
-        struct cerr_sink_provider{
-            static std::ostream& sink(){
+        struct cerr_sink_provider {
+            static std::ostream &sink() {
                 return std::cerr;
             }
         };
 
-        //traits for helping with the verbatim formatter.
-        template<typename...>
-        using void_t = void; //until C++17 is around
+        // traits for helping with the verbatim formatter.
+        template <typename...> using void_t = void; // until C++17 is around
 
-        template<typename, typename = void>
-        struct is_callable : std::false_type {};
+        template <typename, typename = void> struct is_callable : std::false_type {};
 
-        template<typename F, typename... Args>
-        struct is_callable<F(Args...), void_t<decltype(std::declval<F>()(std::declval<Args>()...))>> : std::true_type {};
+        template <typename F, typename... Args>
+        struct is_callable<F(Args...), void_t<decltype(std::declval<F>()(std::declval<Args>()...))>>
+            : std::true_type {};
 
-        template<typename E>
-        constexpr auto is_callable_v = is_callable<E>::value;
+        template <typename E> constexpr auto is_callable_v = is_callable<E>::value;
 
-        //Common formatters
+        // Common formatters
         /** verbatim_formater
-          *
-          * if first param is callable it is used to convert all other params into streamable content
-          * else introduces every param into the stream
-          */
+         *
+         * if first param is callable it is used to convert all other params into streamable content
+         * else introduces every param into the stream
+         */
 
-        //formatter for verbatim, takes a function in first param and applies it to all other params
-        // or concatenated outputs
+        // formatter for verbatim, takes a function in first param and applies it to all other
+        // params
+        //  or concatenated outputs
         struct verbatim_formatter {
-            template<typename F, typename... Args>
-            static auto format(std::ostream& os, F func, Args&&... args) -> std::enable_if_t<is_callable_v<F(Args...)>> {
+            template <typename F, typename... Args>
+            static auto format(std::ostream &os, F func,
+                               Args &&...args) -> std::enable_if_t<is_callable_v<F(Args...)>> {
                 os << func(std::forward<Args>(args)...);
                 os << std::endl;
             }
 
-
-            template<typename T, typename... TS>
-            static auto format(std::ostream& os, T&& value, TS&&... ts) -> std::enable_if_t<!is_callable_v<T(TS...)>> {
+            template <typename T, typename... TS>
+            static auto format(std::ostream &os, T &&value,
+                               TS &&...ts) -> std::enable_if_t<!is_callable_v<T(TS...)>> {
                 os << std::forward<T>(value);
                 verbatim_formatter::format(os, std::forward<TS>(ts)...);
             }
 
-           static void format(std::ostream& os){
+            static void format(std::ostream &os) {
                 os << std::endl;
-           }
+            }
         };
 
+        // a logger that should not match any source, mostly for testing and debug purposes
+        struct not_matching_source : public logger_source {};
+        using not_logger = logger<not_matching_source, verbatim_formatter, cout_sink_provider>;
 
-        //a logger that should not match any source, mostly for testing and debug purposes
-        struct not_matching_source :public logger_source{};
-        using not_logger=logger<not_matching_source, verbatim_formatter, cout_sink_provider>;
+        template <typename TIME> struct formatter {
 
-        template<typename TIME>
-        struct formatter {
-
-            static std::string coor_info_init(TIME t, const std::string& model_id) {
+            static std::string coor_info_init(TIME t, const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "Coordinator for model ";
                 oss << model_id;
@@ -103,7 +101,7 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string coor_info_collect(TIME t, const std::string& model_id) {
+            static std::string coor_info_collect(TIME t, const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "Coordinator for model ";
                 oss << model_id;
@@ -112,7 +110,8 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string coor_info_advance(const TIME& from, const TIME& to, const std::string& model_id) {
+            static std::string coor_info_advance(const TIME &from, const TIME &to,
+                                                 const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "Coordinator for model ";
                 oss << model_id;
@@ -123,28 +122,32 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string coor_routing_eoc_collect(const std::string& model_id) {
+            static std::string coor_routing_eoc_collect(const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "EOC for model ";
                 oss << model_id;
                 return oss.str();
             };
 
-            static std::string coor_routing_ic_collect(const std::string& model_id) {
+            static std::string coor_routing_ic_collect(const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "IC for model ";
                 oss << model_id;
                 return oss.str();
             };
 
-            static std::string coor_routing_eic_collect(const std::string& model_id) {
+            static std::string coor_routing_eic_collect(const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "EIC for model ";
                 oss << model_id;
                 return oss.str();
             };
 
-            static std::string coor_routing_collect_eoc(const std::string& from_messages, const std::string& to_messages, const std::string& from_port, const std::string& to_port, const std::string& submodel_from) {
+            static std::string coor_routing_collect_eoc(const std::string &from_messages,
+                                                        const std::string &to_messages,
+                                                        const std::string &from_port,
+                                                        const std::string &to_port,
+                                                        const std::string &submodel_from) {
                 std::ostringstream oss;
                 oss << " in port ";
                 oss << to_port;
@@ -159,7 +162,12 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string coor_routing_collect_ic(const std::string& from_messages, const std::string& to_messages, const std::string& from_port, const std::string& from_model, const std::string& to_port, const std::string& to_model) {
+            static std::string coor_routing_collect_ic(const std::string &from_messages,
+                                                       const std::string &to_messages,
+                                                       const std::string &from_port,
+                                                       const std::string &from_model,
+                                                       const std::string &to_port,
+                                                       const std::string &to_model) {
                 std::ostringstream oss;
                 oss << " in port ";
                 oss << to_port;
@@ -176,7 +184,11 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string coor_routing_collect_eic(const std::string& from_messages, const std::string& to_messages, const std::string& to_port, const std::string& to_model, const std::string& from_port) {
+            static std::string coor_routing_collect_eic(const std::string &from_messages,
+                                                        const std::string &to_messages,
+                                                        const std::string &to_port,
+                                                        const std::string &to_model,
+                                                        const std::string &from_port) {
                 std::ostringstream oss;
                 oss << " in port ";
                 oss << to_port;
@@ -191,7 +203,7 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string sim_info_init(TIME t, const std::string& model_id) {
+            static std::string sim_info_init(TIME t, const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "Simulator for model ";
                 oss << model_id;
@@ -200,7 +212,7 @@ namespace cadmium {
                 return oss.str();
             }
 
-            static std::string sim_state(const std::string& state, const std::string& model_id) {
+            static std::string sim_state(const std::string &state, const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "State for model ";
                 oss << model_id;
@@ -209,7 +221,7 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string sim_info_collect(TIME t, const std::string& model_id) {
+            static std::string sim_info_collect(TIME t, const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "Simulator for model ";
                 oss << model_id;
@@ -218,7 +230,8 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string sim_messages_collect(const std::string& messages_by_port, const std::string& model_id) {
+            static std::string sim_messages_collect(const std::string &messages_by_port,
+                                                    const std::string &model_id) {
                 std::ostringstream oss;
                 oss << messages_by_port;
                 oss << " generated by model ";
@@ -226,7 +239,8 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string sim_info_advance(const TIME& from, const TIME& to, const std::string& model_id) {
+            static std::string sim_info_advance(const TIME &from, const TIME &to,
+                                                const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "Simulator for model ";
                 oss << model_id;
@@ -237,7 +251,8 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string sim_local_time(const TIME& from, const TIME& to, const std::string& model_id) {
+            static std::string sim_local_time(const TIME &from, const TIME &to,
+                                              const std::string &model_id) {
                 std::ostringstream oss;
                 oss << "Elapsed in model ";
                 oss << model_id;
@@ -247,16 +262,14 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static TIME run_global_time(const TIME& global_time) {
+            static TIME run_global_time(const TIME &global_time) {
                 return global_time;
             }
 
-            static std::string run_info(const std::string& message) {
+            static std::string run_info(const std::string &message) {
                 return message;
             }
         };
 
-    }
-}
-
-
+    } // namespace logger
+} // namespace cadmium

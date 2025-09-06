@@ -25,26 +25,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <cadmium/concept/coupled_model_assert.hpp>
+#include <cadmium/modeling/coupling.hpp>
+
 #include <tuple>
 #include <vector>
-#include <cadmium/modeling/coupling.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
 
 /**
- * Test that when output ports of a coupled model are not defined as a tuple, coupling fails compilation
+ * Test that when output ports of a coupled model are not defined as a tuple, coupling fails
+ * compilation
  */
 
-using input_ports=std::tuple<>;
-using output_ports=std::vector<int>;
+using input_ports  = std::tuple<>;
+using output_ports = std::vector<int>;
 
 using submodels = cadmium::modeling::models_tuple<>;
-using EICs = std::tuple<>;
-using EOCs = std::tuple<>;
-using ICs = std::tuple<>;
-template<typename TIME>
-using C1=cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+using EICs      = std::tuple<>;
+using EOCs      = std::tuple<>;
+using ICs       = std::tuple<>;
+template <typename TIME>
+using C1 = cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs,
+                                                   EOCs, ICs>;
 
-int main(){
+int main() {
     cadmium::old_concept::pdevs::coupled_model_assert<C1>();
     return 0;
 }

@@ -26,12 +26,9 @@
  */
 
 #include <cadmium/engine/pdevs_coordinator.hpp>
-template<typename TIME>
-struct fail_model{
+template <typename TIME> struct fail_model {};
 
-};
-
-int main(){
+int main() {
     cadmium::engine::coordinator<fail_model::type, float>();
     return 0;
 }

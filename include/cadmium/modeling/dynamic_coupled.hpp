@@ -34,9 +34,8 @@ namespace cadmium {
     namespace dynamic {
         namespace modeling {
 
-            template<typename TIME>
-            class coupled : public cadmium::dynamic::modeling::model {
-            public:
+            template <typename TIME> class coupled : public cadmium::dynamic::modeling::model {
+              public:
                 std::string _id;
                 Models _models;
                 Ports _input_ports;
@@ -49,23 +48,10 @@ namespace cadmium {
 
                 coupled(std::string id) : _id(id) {}
 
-                coupled(
-                        std::string id,
-                        Models models,
-                        Ports input_ports,
-                        Ports output_ports,
-                        EICs eic,
-                        EOCs eoc,
-                        ICs ic
-                ) :
-                        _id(id),
-                        _models(models),
-                        _input_ports(input_ports),
-                        _output_ports(output_ports),
-                        _eic(eic),
-                        _eoc(eoc),
-                        _ic(ic)
-                {
+                coupled(std::string id, Models models, Ports input_ports, Ports output_ports,
+                        EICs eic, EOCs eoc, ICs ic)
+                    : _id(id), _models(models), _input_ports(input_ports),
+                      _output_ports(output_ports), _eic(eic), _eoc(eoc), _ic(ic) {
                     if (!valid_ic_links(_models, _ic)) {
                         throw std::domain_error("Coupled model" + _id + " has invalid IC links");
                     }
@@ -74,28 +60,17 @@ namespace cadmium {
                         throw std::domain_error("Coupled model" + _id + " has invalid EIC links");
                     }
 
-                    if(!valid_eoc_links(_models, _output_ports, _eoc)) {
+                    if (!valid_eoc_links(_models, _output_ports, _eoc)) {
                         throw std::domain_error("Coupled model" + _id + " has invalid EOC links");
                     }
                 }
 
-                coupled(
-                        std::string id,
-                        initializer_list_Models models,
-                        initilizer_list_Ports input_ports,
-                        initilizer_list_Ports output_ports,
-                        initializer_list_EICs eic,
-                        initializer_list_EOCs eoc,
-                        initializer_list_ICs ic
-                ) :
-                        _id(id),
-                        _models(models),
-                        _input_ports(input_ports),
-                        _output_ports(output_ports),
-                        _eic(eic),
-                        _eoc(eoc),
-                        _ic(ic)
-                {
+                coupled(std::string id, initializer_list_Models models,
+                        initilizer_list_Ports input_ports, initilizer_list_Ports output_ports,
+                        initializer_list_EICs eic, initializer_list_EOCs eoc,
+                        initializer_list_ICs ic)
+                    : _id(id), _models(models), _input_ports(input_ports),
+                      _output_ports(output_ports), _eic(eic), _eoc(eoc), _ic(ic) {
                     if (!valid_ic_links(_models, _ic)) {
                         throw std::domain_error("Coupled model" + _id + " has invalid IC links");
                     }
@@ -104,7 +79,7 @@ namespace cadmium {
                         throw std::domain_error("Coupled model" + _id + " has invalid EIC links");
                     }
 
-                    if(!valid_eoc_links(_models, _output_ports, _eoc)) {
+                    if (!valid_eoc_links(_models, _output_ports, _eoc)) {
                         throw std::domain_error("Coupled model" + _id + " has invalid EOC links");
                     }
                 }
@@ -120,9 +95,7 @@ namespace cadmium {
                 cadmium::dynamic::modeling::Ports get_output_ports() const override {
                     return _output_ports;
                 }
-
             };
-        }
-    }
-}
-
+        } // namespace modeling
+    } // namespace dynamic
+} // namespace cadmium

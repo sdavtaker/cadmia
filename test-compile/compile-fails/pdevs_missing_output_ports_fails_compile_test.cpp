@@ -26,37 +26,37 @@
  */
 
 /**
-* Test that an atomic model with no output_ports transition fails compilation on atomic_model_assert
- * This is different to say that it has an empty tuple of ports, which is a valid model definition
+ * Test that an atomic model with no output_ports transition fails compilation on
+ * atomic_model_assert This is different to say that it has an empty tuple of ports, which is a
+ * valid model definition
  */
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
+#include <cadmium/concept/atomic_model_assert.hpp>
+#include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/ports.hpp>
 
+#include <tuple>
 
 /**
  * This model has no logic, only used for structural validation tests.
  * In this case it is missing the declaration of input_ports type
  * For external and confluence transition fuctions defined input as empty tuple of ports
  */
-template<typename TIME>
-struct devs_atomic_model_with_no_output_ports {
-    struct in : public cadmium::in_port<int> {
-    };
+template <typename TIME> struct devs_atomic_model_with_no_output_ports {
+    struct in : public cadmium::in_port<int> {};
 
     constexpr devs_atomic_model_with_no_output_ports() noexcept {}
 
-    using state_type=int;
-    state_type state = 0;
-    using input_ports=std::tuple<in>;
+    using state_type  = int;
+    state_type state  = 0;
+    using input_ports = std::tuple<in>;
 
     void internal_transition() {}
 
     void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {}
 
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {}
+    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {
+    }
 
     typename cadmium::make_message_bags<std::tuple<>>::type output() const {}
 

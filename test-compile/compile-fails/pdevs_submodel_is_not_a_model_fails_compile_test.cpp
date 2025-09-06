@@ -28,29 +28,31 @@
 /**
  * Test that failing to declare valid submodels in a coupled model fails compilation
  */
-#include<cadmium/modeling/coupling.hpp>
-#include<cadmium/concept/coupled_model_assert.hpp>
+#include <cadmium/concept/coupled_model_assert.hpp>
+#include <cadmium/modeling/coupling.hpp>
 
-using input_ports_c1=std::tuple<>;
-using output_ports_c1=std::tuple<>;
-using submodels_c1 = cadmium::modeling::models_tuple<>;
-using EICs_c1 = std::tuple<>;
-using EOCs_c1 = std::tuple<>;
-using ICs_c1 = std::tuple<int>; //C1 is not a valid coupled model
-template<typename TIME>
-using C1=cadmium::modeling::pdevs::coupled_model<TIME, input_ports_c1, output_ports_c1, submodels_c1, EICs_c1, EOCs_c1, ICs_c1>;
+using input_ports_c1  = std::tuple<>;
+using output_ports_c1 = std::tuple<>;
+using submodels_c1    = cadmium::modeling::models_tuple<>;
+using EICs_c1         = std::tuple<>;
+using EOCs_c1         = std::tuple<>;
+using ICs_c1          = std::tuple<int>; // C1 is not a valid coupled model
+template <typename TIME>
+using C1 = cadmium::modeling::pdevs::coupled_model<TIME, input_ports_c1, output_ports_c1,
+                                                   submodels_c1, EICs_c1, EOCs_c1, ICs_c1>;
 
-//C2 has C1 as submodel
-using input_ports=std::tuple<>;
-using output_ports=std::tuple<>;
-using submodels = cadmium::modeling::models_tuple<C1>;
-using EICs = std::tuple<>;
-using EOCs = std::tuple<>;
-using ICs = std::tuple<>;
-template<typename TIME>
-using C2=cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+// C2 has C1 as submodel
+using input_ports  = std::tuple<>;
+using output_ports = std::tuple<>;
+using submodels    = cadmium::modeling::models_tuple<C1>;
+using EICs         = std::tuple<>;
+using EOCs         = std::tuple<>;
+using ICs          = std::tuple<>;
+template <typename TIME>
+using C2 = cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs,
+                                                   EOCs, ICs>;
 
-int main(){
+int main() {
     cadmium::old_concept::pdevs::coupled_model_assert<C2>();
     return 0;
 }

@@ -25,59 +25,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #pragma once
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/ports.hpp>
 
-#include<limits>
-#include<stdexcept>
+#include <limits>
+#include <stdexcept>
 
 namespace cadmium::basic_models::pdevs {
 
-/**
- * @brief Generator PDEVS Model
- *
- * Generator PDEVS Model(period, outvalue):
- * - X = {}
- * - Y = {outvalue}
- * - S = {passive, active} x Multiples(period)
- * - internal(phase, t) = ("active", period)
- * - external = {}
- * - out ("active", t) = outvalue
- * - advance(phase, t) = period - t
-*/
+    /**
+     * @brief Generator PDEVS Model
+     *
+     * Generator PDEVS Model(period, outvalue):
+     * - X = {}
+     * - Y = {outvalue}
+     * - S = {passive, active} x Multiples(period)
+     * - internal(phase, t) = ("active", period)
+     * - external = {}
+     * - out ("active", t) = outvalue
+     * - advance(phase, t) = period - t
+     */
 
-    //definitions used for defining the accumulator that need to be accessed by externals resources before instantiate the models
-    //This includes Ports referenced by couplings, and
-    template<typename VALUE>
-    struct generator_defs {
-        //custom ports
-        struct out : public out_port<VALUE> {
-        };
+    // definitions used for defining the accumulator that need to be accessed by externals resources
+    // before instantiate the models This includes Ports referenced by couplings, and
+    template <typename VALUE> struct generator_defs {
+        // custom ports
+        struct out : public out_port<VALUE> {};
     };
 
-
-    //This is a meta-model, it should be overloaded for declaring the tick time and tick values in the generator
-    template<typename VALUE, typename TIME> //VALUE is the type of Y
+    // This is a meta-model, it should be overloaded for declaring the tick time and tick values in
+    // the generator
+    template <typename VALUE, typename TIME> // VALUE is the type of Y
     class generator {
-        using defs=generator_defs<VALUE>;// putting definitions in context
-    public:
-        //these functions need to be overriden to define the generator behavior
-        virtual TIME period() const = 0; // time between consecutive messages
+        using defs = generator_defs<VALUE>; // putting definitions in context
+      public:
+        // these functions need to be overriden to define the generator behavior
+        virtual TIME period() const          = 0; // time between consecutive messages
         virtual VALUE output_message() const = 0; // message to be output
         // required definitions start here
         // default constructor
         constexpr generator() noexcept {}
 
         // state definition
-        using state_type=int;
+        using state_type = int;
         state_type state = 0;
 
         // ports definition
-        using input_ports=std::tuple<>;
-        using output_ports=std::tuple<typename defs::out>;
+        using input_ports  = std::tuple<>;
+        using output_ports = std::tuple<typename defs::out>;
 
         // internal transition
         void internal_transition() {}
@@ -101,11 +98,10 @@ namespace cadmium::basic_models::pdevs {
 
         // time_advance function
         TIME time_advance() const {
-            //we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
+            // we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
             return period();
         }
 
         virtual ~generator() {}
     };
-}
-
+} // namespace cadmium::basic_models::pdevs

@@ -30,16 +30,14 @@
  * compilation on pdevs_atomic_model_assert.
  */
 
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<cadmium/basic_model/pdevs/generator.hpp>
+#include <cadmium/basic_model/pdevs/generator.hpp>
+#include <cadmium/concept/atomic_model_assert.hpp>
 
+// preparing the generator to be used as atomic model
+template <typename TIME>
+using floating_generator_base = cadmium::basic_models::pdevs::generator<float, TIME>;
 
-//preparing the generator to be used as atomic model
-template<typename TIME>
-using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
-
-template<typename TIME>
-struct floating_generator : public floating_generator_base<TIME> {
+template <typename TIME> struct floating_generator : public floating_generator_base<TIME> {
     float period() const override {
         return 1.0f;
     }
@@ -48,7 +46,6 @@ struct floating_generator : public floating_generator_base<TIME> {
         return 1.0f;
     }
 };
-
 
 int main() {
     cadmium::old_concept::pdevs::atomic_model_assert<floating_generator>();

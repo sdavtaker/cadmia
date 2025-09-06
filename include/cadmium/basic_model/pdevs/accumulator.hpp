@@ -25,70 +25,65 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #pragma once
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/modeling/message_bag.hpp>
-#include<cadmium/logger/tuple_to_ostream.hpp> // included to allow the accumulator state to use the << operator
+#include <cadmium/logger/tuple_to_ostream.hpp> // included to allow the accumulator state to use the << operator
+#include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/ports.hpp>
 
-#include<limits>
-#include<stdexcept>
+#include <limits>
+#include <stdexcept>
 
 namespace cadmium::basic_models::pdevs {
 
-/**
- * @brief Accumulator PDEVS Model.
- *
- * Accumulator PDEVS Model:
- * - In_Ports: add<Numeric>, reset
- * - Out_Ports: outport
- * - S = {Numeric:total, bool:reseted}
- * - internal({total, true}, 0) = {0, false}
- * - external({total, b}, t, x) = {total+x, b}
- * - confluence({total, b}, 0, x) = external(internal({total, true}, 0), 0, x)
- * - output ({total, b}) = outport:{total}
- * - time_advance({total, true}) = 0
- *   time_advance({total, false}) = infinite
-*/
+    /**
+     * @brief Accumulator PDEVS Model.
+     *
+     * Accumulator PDEVS Model:
+     * - In_Ports: add<Numeric>, reset
+     * - Out_Ports: outport
+     * - S = {Numeric:total, bool:reseted}
+     * - internal({total, true}, 0) = {0, false}
+     * - external({total, b}, t, x) = {total+x, b}
+     * - confluence({total, b}, 0, x) = external(internal({total, true}, 0), 0, x)
+     * - output ({total, b}) = outport:{total}
+     * - time_advance({total, true}) = 0
+     *   time_advance({total, false}) = infinite
+     */
 
-    //definitions used for defining the accumulator that need to be accessed by externals resources before instantiate the models
-    template<typename VALUE>
-    struct accumulator_defs {
-        //custom messages
-        struct reset_tick {
-        };
-        //custom ports
-        struct sum : public out_port<VALUE> {
-        };
-        struct add : public in_port<VALUE> {
-        };
-        struct reset : public in_port<reset_tick> {
-        };
+    // definitions used for defining the accumulator that need to be accessed by externals resources
+    // before instantiate the models
+    template <typename VALUE> struct accumulator_defs {
+        // custom messages
+        struct reset_tick {};
+        // custom ports
+        struct sum : public out_port<VALUE> {};
+        struct add : public in_port<VALUE> {};
+        struct reset : public in_port<reset_tick> {};
     };
 
-    template<typename VALUE, typename TIME> //value is the type of accumulated values
+    template <typename VALUE, typename TIME> // value is the type of accumulated values
     class accumulator {
-        using defs=accumulator_defs<VALUE>;// putting definitions in context
-    public:
-        //state
-        using on_reset=bool;
-        using state_type=std::tuple<VALUE, on_reset>;
+        using defs = accumulator_defs<VALUE>; // putting definitions in context
+      public:
+        // state
+        using on_reset   = bool;
+        using state_type = std::tuple<VALUE, on_reset>;
         state_type state = std::make_tuple(VALUE{}, false);
 
-        //default constructor
+        // default constructor
         constexpr accumulator() noexcept {}
 
-        //ports_definition
-        using input_ports=std::tuple<typename defs::add, typename defs::reset>;
-        using output_ports=std::tuple<typename defs::sum>;
+        // ports_definition
+        using input_ports  = std::tuple<typename defs::add, typename defs::reset>;
+        using output_ports = std::tuple<typename defs::sum>;
 
         // PDEVS functions
         void internal_transition() {
             if (!std::get<on_reset>(state)) {
                 throw std::logic_error("Internal transition called while not on reset state");
             }
-            std::get<VALUE>(state) = VALUE{0};
+            std::get<VALUE>(state)    = VALUE{0};
             std::get<on_reset>(state) = false;
         }
 
@@ -97,19 +92,19 @@ namespace cadmium::basic_models::pdevs {
                 throw std::logic_error("External transition called while on reset state");
             }
 
-            //one message bag parameter for each port is received
+            // one message bag parameter for each port is received
             for (const auto &x : get_messages<typename defs::add>(mbs)) {
                 std::get<VALUE>(state) += x;
             }
             if (!get_messages<typename defs::reset>(mbs).empty())
-                std::get<on_reset>(state) = true; //multiple call equal one call
+                std::get<on_reset>(state) = true; // multiple call equal one call
         }
 
         void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-            //process internal transition first
+            // process internal transition first
             internal_transition();
-            //then external transition
-            //we assume the default constructor of TIME produces a zero
+            // then external transition
+            // we assume the default constructor of TIME produces a zero
             external_transition(TIME{}, std::move(mbs));
         }
 
@@ -124,9 +119,8 @@ namespace cadmium::basic_models::pdevs {
         }
 
         TIME time_advance() const {
-            //we assume default constructor of time is 0 and infinity is defined in numeric_limits
+            // we assume default constructor of time is 0 and infinity is defined in numeric_limits
             return (std::get<on_reset>(state) ? TIME{} : std::numeric_limits<TIME>::infinity());
         }
     };
-}
-
+} // namespace cadmium::basic_models::pdevs

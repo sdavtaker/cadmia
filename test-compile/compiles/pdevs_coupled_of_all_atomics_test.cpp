@@ -29,10 +29,11 @@
  * Test that asserting coupled model with all submodels atomic does not fail compilation
  */
 
-#include "pdevs_coupled_of_atomic_models.hpp"
 #include <cadmium/concept/coupled_model_assert.hpp>
 
-int main(){
+#include "pdevs_coupled_of_atomic_models.hpp"
+
+int main() {
     cadmium::old_concept::pdevs::coupled_model_assert<coupled_of_atomics>();
     return 0;
 }

@@ -30,12 +30,12 @@
  * that is not failing compilation on atomic_model_assert.
  */
 
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<cadmium/basic_model/pdevs/passive.hpp>
+#include <cadmium/basic_model/pdevs/passive.hpp>
+#include <cadmium/concept/atomic_model_assert.hpp>
 
-//preparing the passive to be used as atomic model
-template<typename TIME>
-using floating_passive=cadmium::basic_models::pdevs::passive<float, TIME>;
+// preparing the passive to be used as atomic model
+template <typename TIME>
+using floating_passive = cadmium::basic_models::pdevs::passive<float, TIME>;
 
 int main() {
     cadmium::old_concept::pdevs::atomic_model_assert<floating_passive>();

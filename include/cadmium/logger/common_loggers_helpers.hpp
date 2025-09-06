@@ -27,55 +27,51 @@
 
 #pragma once
 
-#include <tuple>
-#include <iostream>
 #include <cadmium/modeling/message_bag.hpp>
+
+#include <iostream>
+#include <tuple>
 #include <typeinfo>
 
 namespace cadmium {
     namespace logger {
 
         // Displaying all messages in a bag
-        //printing all messages in bags, if the support the << operator to ostream
-        template <typename T>
-        struct is_streamable {
-        private:
+        // printing all messages in bags, if the support the << operator to ostream
+        template <typename T> struct is_streamable {
+          private:
             template <typename U>
             static decltype(std::cout << std::declval<U>(), void(), std::true_type()) test(int);
-            template <typename>
-            static std::false_type test(...);
-        public:
-            using type=decltype(test<T>(0));
-            static constexpr auto value=type::value;
+            template <typename> static std::false_type test(...);
+
+          public:
+            using type                  = decltype(test<T>(0));
+            static constexpr auto value = type::value;
         };
 
-        template<typename T, typename V=typename is_streamable<T>::type>
-        struct value_or_name;
+        template <typename T, typename V = typename is_streamable<T>::type> struct value_or_name;
 
-        template<typename T>
-        struct value_or_name<T, std::true_type>{
-            static void print(std::ostream& os, const T& v){
+        template <typename T> struct value_or_name<T, std::true_type> {
+            static void print(std::ostream &os, const T &v) {
                 os << v;
             }
         };
 
-        template<typename T>
-        struct value_or_name<T, std::false_type>{
-            static void print(std::ostream& os, const T& v){
+        template <typename T> struct value_or_name<T, std::false_type> {
+            static void print(std::ostream &os, const T &v) {
                 os << "obscure message of type ";
                 os << typeid(T).name();
             }
         };
 
-        template<typename T>
-        std::ostream& implode(std::ostream& os, const T& collection){
+        template <typename T> std::ostream &implode(std::ostream &os, const T &collection) {
             os << "{";
             auto it = std::begin(collection);
             if (it != std::end(collection)) {
                 value_or_name<typename T::value_type>::print(os, *it);
                 ++it;
             }
-            while (it != std::end(collection)){
+            while (it != std::end(collection)) {
                 os << ", ";
                 value_or_name<typename T::value_type>::print(os, *it);
                 ++it;
@@ -84,13 +80,11 @@ namespace cadmium {
             return os;
         }
 
-        template<typename T>
-        std::vector<std::string> messages_as_strings(const T& collection){
+        template <typename T> std::vector<std::string> messages_as_strings(const T &collection) {
             std::vector<std::string> ret;
             std::ostringstream oss;
 
-
-            for (auto it = std::begin(collection); it != std::end(collection); ++it){
+            for (auto it = std::begin(collection); it != std::end(collection); ++it) {
                 value_or_name<typename T::value_type>::print(oss, *it);
                 ret.push_back(oss.str());
                 oss.str("");
@@ -99,12 +93,11 @@ namespace cadmium {
             return ret;
         }
 
-        //priting messages for all ports
-        template<size_t s, typename... T>
-        struct print_messages_by_port_impl{
-            using current_bag=typename std::tuple_element<s-1, std::tuple<T...>>::type;
-            static void run(std::ostream& os, const std::tuple<T...>& b){
-                print_messages_by_port_impl<s-1, T...>::run(os, b);
+        // priting messages for all ports
+        template <size_t s, typename... T> struct print_messages_by_port_impl {
+            using current_bag = typename std::tuple_element<s - 1, std::tuple<T...>>::type;
+            static void run(std::ostream &os, const std::tuple<T...> &b) {
+                print_messages_by_port_impl<s - 1, T...>::run(os, b);
                 os << ", ";
                 os << typeid(typename current_bag::port).name();
                 os << ": ";
@@ -112,26 +105,24 @@ namespace cadmium {
             }
         };
 
-        template<typename... T>
-        struct print_messages_by_port_impl<1, T...>{
-            using current_bag=typename std::tuple_element<0, std::tuple<T...>>::type;
-            static void run(std::ostream& os, const std::tuple<T...>& b){
+        template <typename... T> struct print_messages_by_port_impl<1, T...> {
+            using current_bag = typename std::tuple_element<0, std::tuple<T...>>::type;
+            static void run(std::ostream &os, const std::tuple<T...> &b) {
                 os << typeid(typename current_bag::port).name();
                 os << ": ";
                 implode(os, cadmium::get_messages<typename current_bag::port>(b));
             }
         };
 
-        template<typename... T>
-        struct print_messages_by_port_impl<0, T...>{
-            static void run(std::ostream& os, const std::tuple<T...>& b){}
+        template <typename... T> struct print_messages_by_port_impl<0, T...> {
+            static void run(std::ostream &os, const std::tuple<T...> &b) {}
         };
 
         template <typename... T>
-        void print_messages_by_port(std::ostream& os, const std::tuple<T...>& b){
+        void print_messages_by_port(std::ostream &os, const std::tuple<T...> &b) {
             os << "[";
             print_messages_by_port_impl<sizeof...(T), T...>::run(os, b);
             os << "]";
         }
-    }
-}
+    } // namespace logger
+} // namespace cadmium

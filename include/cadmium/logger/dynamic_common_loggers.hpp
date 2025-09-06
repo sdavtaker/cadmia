@@ -28,8 +28,9 @@
 #pragma once
 
 #include <cadmium/engine/common_helpers.hpp>
-#include <vector>
+
 #include <string>
+#include <vector>
 
 namespace cadmium {
     namespace dynamic {
@@ -43,39 +44,23 @@ namespace cadmium {
 
                 routed_messages() = default;
 
-                routed_messages(
-                        std::string from_p,
-                        std::string to_p
-                ) :
-                        from_port(from_p),
-                        to_port(to_p)
-                {}
+                routed_messages(std::string from_p, std::string to_p)
+                    : from_port(from_p), to_port(to_p) {}
 
-                routed_messages(
-                        std::vector<std::string> from_msgs,
-                        std::vector<std::string> to_msgs,
-                        std::string from_p,
-                        std::string to_p
-                ) :
-                        from_port(from_p),
-                        to_port(to_p),
-                        from_messages(from_msgs),
-                        to_messages(to_msgs)
-                {}
+                routed_messages(std::vector<std::string> from_msgs,
+                                std::vector<std::string> to_msgs, std::string from_p,
+                                std::string to_p)
+                    : from_port(from_p), to_port(to_p), from_messages(from_msgs),
+                      to_messages(to_msgs) {}
 
-                routed_messages(const routed_messages& other) :
-                        from_port(other.from_port),
-                        to_port(other.to_port),
-                        from_messages(other.from_messages),
-                        to_messages(other.to_messages)
-                {}
-
+                routed_messages(const routed_messages &other)
+                    : from_port(other.from_port), to_port(other.to_port),
+                      from_messages(other.from_messages), to_messages(other.to_messages) {}
             };
 
-            template<typename TIME>
-            struct formatter {
+            template <typename TIME> struct formatter {
 
-                static std::string coor_info_init(const TIME& t, const std::string& model_id) {
+                static std::string coor_info_init(const TIME &t, const std::string &model_id) {
                     std::ostringstream oss;
                     oss << "Coordinator for model ";
                     oss << model_id;
@@ -84,7 +69,7 @@ namespace cadmium {
                     return oss.str();
                 };
 
-                static std::string coor_info_collect(const TIME& t, const std::string& model_id) {
+                static std::string coor_info_collect(const TIME &t, const std::string &model_id) {
                     std::ostringstream oss;
                     oss << "Coordinator for model ";
                     oss << model_id;
@@ -93,14 +78,16 @@ namespace cadmium {
                     return oss.str();
                 };
 
-                static std::string coor_routing_eoc_collect(const TIME& t, const std::string& model_id) {
+                static std::string coor_routing_eoc_collect(const TIME &t,
+                                                            const std::string &model_id) {
                     std::ostringstream oss;
                     oss << "EOC for model ";
                     oss << model_id;
                     return oss.str();
                 };
 
-                static std::string coor_info_advance(const TIME& from, const TIME& to, const std::string& model_id) {
+                static std::string coor_info_advance(const TIME &from, const TIME &to,
+                                                     const std::string &model_id) {
                     std::ostringstream oss;
                     oss << "Coordinator for model ";
                     oss << model_id;
@@ -111,21 +98,26 @@ namespace cadmium {
                     return oss.str();
                 };
 
-                static std::string coor_routing_ic_collect(const TIME& t, const std::string& model_id) {
+                static std::string coor_routing_ic_collect(const TIME &t,
+                                                           const std::string &model_id) {
                     std::ostringstream oss;
                     oss << "IC for model ";
                     oss << model_id;
                     return oss.str();
                 };
 
-                static std::string coor_routing_eic_collect(const TIME& t, const std::string& model_id) {
+                static std::string coor_routing_eic_collect(const TIME &t,
+                                                            const std::string &model_id) {
                     std::ostringstream oss;
                     oss << "EIC for model ";
                     oss << model_id;
                     return oss.str();
                 };
 
-                static std::string coor_routing_collect(const std::string& from_port, const std::string& to_port, const std::vector<std::string>& from_messages, const std::vector<std::string>& to_messages) {
+                static std::string
+                coor_routing_collect(const std::string &from_port, const std::string &to_port,
+                                     const std::vector<std::string> &from_messages,
+                                     const std::vector<std::string> &to_messages) {
                     std::ostringstream oss;
                     oss << " in port ";
                     oss << to_port;
@@ -138,7 +130,7 @@ namespace cadmium {
                     return oss.str();
                 }
 
-                static std::string sim_info_init(const TIME& t, const std::string& model_id) {
+                static std::string sim_info_init(const TIME &t, const std::string &model_id) {
                     std::ostringstream oss;
                     oss << "Simulator for model ";
                     oss << model_id;
@@ -147,7 +139,8 @@ namespace cadmium {
                     return oss.str();
                 }
 
-                static std::string sim_state(const TIME& t, const std::string& model_id, const std::string& model_state) {
+                static std::string sim_state(const TIME &t, const std::string &model_id,
+                                             const std::string &model_state) {
                     std::ostringstream oss;
                     oss << "State for model ";
                     oss << model_id;
@@ -156,7 +149,7 @@ namespace cadmium {
                     return oss.str();
                 };
 
-                static std::string sim_info_collect(const TIME& t, const std::string& model_id) {
+                static std::string sim_info_collect(const TIME &t, const std::string &model_id) {
                     std::ostringstream oss;
                     oss << "Simulator for model ";
                     oss << model_id;
@@ -165,7 +158,8 @@ namespace cadmium {
                     return oss.str();
                 };
 
-                static std::string sim_messages_collect(const TIME& t, const std::string& model_id, const std::string& outbox) {
+                static std::string sim_messages_collect(const TIME &t, const std::string &model_id,
+                                                        const std::string &outbox) {
                     std::ostringstream oss;
                     oss << outbox;
                     oss << " generated by model ";
@@ -173,7 +167,8 @@ namespace cadmium {
                     return oss.str();
                 };
 
-                static std::string sim_info_advance(const TIME& from, const TIME& to, std::string model_id) {
+                static std::string sim_info_advance(const TIME &from, const TIME &to,
+                                                    std::string model_id) {
                     std::ostringstream oss;
                     oss << "Simulator for model ";
                     oss << model_id;
@@ -184,7 +179,8 @@ namespace cadmium {
                     return oss.str();
                 };
 
-                static std::string sim_local_time(const TIME& from, const TIME& to, const std::string& model_id) {
+                static std::string sim_local_time(const TIME &from, const TIME &to,
+                                                  const std::string &model_id) {
                     std::ostringstream oss;
                     oss << "Elapsed in model ";
                     oss << model_id;
@@ -194,15 +190,14 @@ namespace cadmium {
                     return oss.str();
                 };
 
-                static TIME run_global_time(const TIME& global_time) {
+                static TIME run_global_time(const TIME &global_time) {
                     return global_time;
                 }
 
-                static std::string run_info(const std::string& message) {
+                static std::string run_info(const std::string &message) {
                     return message;
                 }
             };
-        }
-    }
-}
-
+        } // namespace logger
+    } // namespace dynamic
+} // namespace cadmium
