@@ -1,35 +1,45 @@
-# cadmium [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![codecov](https://codecov.io/gh/sdavtaker/cadmium/branch/master/graph/badge.svg)](https://codecov.io/gh/sdavtaker/cadmium) [![DOI](https://zenodo.org/badge/68416727.svg)](https://zenodo.org/badge/latestdoi/68416727)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/sdavtaker/cadmium/badge)](https://scorecard.dev/viewer/?uri=githubcom/sdavtaker/cadmium)
+# CadmIA [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![codecov](https://codecov.io/gh/sdavtaker/cadmia/branch/master/graph/badge.svg)](https://codecov.io/gh/sdavtaker/cadmia) [![DOI](https://zenodo.org/badge/68416727.svg)](https://zenodo.org/badge/latestdoi/68416727)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/sdavtaker/cadmia/badge)](https://scorecard.dev/viewer/?uri=githubcom/sdavtaker/cadmia)
 
 
 ## Introduction
-This library provides model classes for multiple Discrete-Event Simulation formalisms and the tools to simulate those models.
-This project goal is replace CD++ with a more flexible and better performant implementation. Initial research in the  architecture of Cadmium can be found in [Sequential PDEVS architecture](http://cell-devs.sce.carleton.ca/publications/2015/VNWD15/) paper. Our primary building tool is clang, but we also test builds using gcc and visual studio when having the resources to do so.
+CadmIA is the next evolution of the Cadmium and CDBoost simulators, rewritten to implement
+the IA‑DEVS formalism using modern C++23. The goal is to keep the proven ideas and
+architectures of previous projects while delivering a cleaner, safer, and faster
+implementation aligned with the IA‑DEVS specification from the [Uncertainty Aware DEVS paper](https://cell-devs-02.sce.carleton.ca/publications/2021/VWD21/).
 
-## Top features
-* Model validation at compile time.
-* PDEVS models simulated in a single thread.
-* Typed messages going through typed ports.
-* Time representation is independent of model implementation.
+Status: work in progress. Interfaces and behaviors may change while the IA‑DEVS core is
+implemented and validated.
+
+## Top features (planned)
+* IA‑DEVS semantics with strong compile‑time validation of models.
+* Typed messages over typed ports, with clear coupling composition.
+* Time representation decoupled from model logic.
+* Header‑only delivery for easy consumption.
+* C++23 standard library features and guidelines (no extra deps unless necessary).
 
 ## Quick start
 ### Requirements
-* A C++23 compliant compiler.
+* A C++23 compliant compiler (clang, GCC, or MSVC with C++23 enabled).
 
 ### Install
-* The library is headers only. Then, it is enough to put the include directory in the path the compiler looks up for them.
-
-### Running cadmium in concurrent mode
-By default, cadmium runs single threaded. There is also a concurrent version behind a flag, but it requires Boost.Thread library and some changes need to be made when compiling:
-* The preprocessor variable CADMIUM_EXECUTE_CONCURRENT should be defined (add '-DCADMIUM_EXECUTE_CONCURRENT' when compiling ).
-* Boost.Thread and Boost.System libraries should be linked (add '-lboost_system -lboost_thread')
+* The library is header‑only. Add the `include` directory to your compiler's include paths. Install by CMAKE is available.
 
 ### Building tests and examples
-* Boost.Test, if running the testsfor running the tests.
-* Boost.Build, if using the building files provided for convenience.
+Current repository layout still contains legacy PDEVS examples and tests from Cadmium while
+CadmIA is being implemented. Testing requires:
+* Catch2 (brought via vcpkg in the provided CMake setup).
+
+## Notes on concurrency (roadmap)
+CadmIA will prioritize clear, deterministic IA‑DEVS semantics. Concurrency support will be
+re‑evaluated with standard C++ facilities (e.g., jthread) rather than Boost. Details will be
+documented once the single‑threaded IA‑DEVS engine is complete.
 
 ## References
-* [CD++ website](http://cell-devs.sce.carleton.ca/mediawiki/index.php/Main_Page) is official CD++ website.
-* [CD++ paper](http://www.sce.carleton.ca/faculty/wainer/papers/spe482.pdf) describes the CD++ simulator.
-* [CDBoost website](http://blincubator.com/bi_library/simulation/?gform_post_id=1390) shows a preliminary implementation of Cadmium.
-* [Sequential PDEVS architecture](http://cell-devs.sce.carleton.ca/publications/2015/VNWD15/) describes the architecture originally proposed. Several changes had been implemented since then. The documentation will explain them when ready.
+* IA‑DEVS specification (VWD21): https://cell-devs-02.sce.carleton.ca/publications/2021/VWD21/
+	(local: `uadevs-paper.tex`).
+* CD++ website: http://cell-devs.sce.carleton.ca/mediawiki/index.php/Main_Page
+* CD++ paper: http://www.sce.carleton.ca/faculty/wainer/papers/spe482.pdf
+* CDBoost overview: http://blincubator.com/bi_library/simulation/?gform_post_id=1390
+* Sequential PDEVS architecture (legacy background):
+	http://cell-devs.sce.carleton.ca/publications/2015/VNWD15/
