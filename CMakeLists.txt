@@ -39,7 +39,7 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
     ENDIF ()
 ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 
-find_package(Catch2 CONFIG REQUIRED)
+find_package(Catch2 3 CONFIG REQUIRED)
 
 add_library(cadmia INTERFACE)
 add_library(cadmia::cadmia ALIAS cadmia)
@@ -51,15 +51,52 @@ target_include_directories(cadmia INTERFACE
 
 target_compile_features(cadmia INTERFACE cxx_std_23)
 
+include(CTest)
+# Load Catch2's CTest integration module for v3 in a robust way
+# Prefer the package-provided module path, but handle vcpkg and system installs.
+if(DEFINED Catch2_DIR)
+    list(APPEND CMAKE_MODULE_PATH "${Catch2_DIR}")
+endif()
+
+# Try the straightforward include first
+include(Catch2 OPTIONAL RESULT_VARIABLE _CATCH2_INC_RES)
+
+# If not found, try a set of likely paths directly
+if(NOT _CATCH2_INC_RES)
+    foreach(_cand
+        "${Catch2_DIR}/Catch2.cmake"
+        "${Catch2_DIR}/extras/Catch2.cmake"
+        "${Catch2_DIR}/../lib/cmake/Catch2/Catch2.cmake"
+        "${Catch2_DIR}/../share/catch2/Catch2.cmake"
+        "${Catch2_DIR}/Catch.cmake"  # legacy name
+        "${Catch2_DIR}/extras/Catch.cmake"
+        "${Catch2_DIR}/../lib/cmake/Catch2/Catch.cmake"
+        "${Catch2_DIR}/../share/catch2/Catch.cmake"
+    )
+        if(EXISTS "${_cand}")
+            include("${_cand}")
+            break()
+        endif()
+    endforeach()
+endif()
 enable_testing()
 
-# Unit tests
+# Unit tests (Catch2 v3 discovery)
 FILE(GLOB TestSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*_test.cpp)
 foreach (testSrc ${TestSources})
     get_filename_component(testName ${testSrc} NAME_WE)
     add_executable(${testName} ${testSrc})
     target_link_libraries(${testName} PUBLIC cadmia Catch2::Catch2WithMain)
-    add_test(${testName} ${testName})
+    # Auto-discover Catch2 TEST_CASEs and register them with CTest when available;
+    # otherwise, register the binary as a single CTest entry.
+    if(COMMAND catch_discover_tests)
+        catch_discover_tests(${testName}
+            TEST_PREFIX "${testName}."
+            DISCOVERY_MODE POST_BUILD)
+    else()
+        message(WARNING "Catch2.cmake not found; falling back to single test entry for ${testName}.")
+        add_test(NAME ${testName} COMMAND ${testName})
+    endif()
 endforeach ()
 
 # Tests that should compile
