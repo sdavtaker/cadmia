@@ -29,6 +29,7 @@ Response format:
   21) For functionality correctness refer to uadevs-paper.text file in this repo. We are building a C++ library for AI-DEVS simulation.
   22) Prefer the use of STL algorithms and data structures over custom implementations.
   23) When using exceptions, prefer standard exceptions document in the code if what exceptions guarantee is provided (strong, basic, no-throw).
+  24) Prefer descriptive variable and function names.
 
 Project constraints:
 - Respect existing license headers and SPDX tags.
