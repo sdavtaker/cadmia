@@ -30,6 +30,7 @@ Response format:
   22) Prefer the use of STL algorithms and data structures over custom implementations.
   23) When using exceptions, prefer standard exceptions document in the code if what exceptions guarantee is provided (strong, basic, no-throw).
   24) Prefer descriptive variable and function names.
+  25) When detecting input errors fail early and loudly.
 
 Project constraints:
 - Respect existing license headers and SPDX tags.
