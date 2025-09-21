@@ -48,13 +48,13 @@ namespace cadmia::modeling {
     // Generic interval type with closure flags.
     template <interval_scalar T> struct interval {
         using value_t = T;
-    T lower{};
-    T upper{};
+        T lower{};
+        T upper{};
         bool lower_closed{false};
         bool upper_closed{false};
-    // Infinity metadata (0 = finite; -1 = -inf; +1 = +inf)
-    int  lower_inf_sign{0};
-    int  upper_inf_sign{0};
+        // Infinity metadata (0 = finite; -1 = -inf; +1 = +inf)
+        int lower_inf_sign{0};
+        int upper_inf_sign{0};
 
         constexpr interval() noexcept = default;
 
@@ -93,8 +93,8 @@ namespace cadmia::modeling {
         }
 
         // Endpoint arithmetic helpers respecting infinities
-        static constexpr void add_endpoint(const T &a, int a_inf, const T &b, int b_inf,
-                                           T &out_val, int &out_inf) noexcept {
+        static constexpr void add_endpoint(const T &a, int a_inf, const T &b, int b_inf, T &out_val,
+                                           int &out_inf) noexcept {
             if (a_inf == 0 && b_inf == 0) {
                 out_val = a + b;
                 out_inf = 0;
@@ -115,8 +115,8 @@ namespace cadmia::modeling {
             out_inf = 0;
         }
 
-        static constexpr void sub_endpoint(const T &a, int a_inf, const T &b, int b_inf,
-                                           T &out_val, int &out_inf) noexcept {
+        static constexpr void sub_endpoint(const T &a, int a_inf, const T &b, int b_inf, T &out_val,
+                                           int &out_inf) noexcept {
             if (a_inf == 0 && b_inf == 0) {
                 out_val = a - b;
                 out_inf = 0;
@@ -137,7 +137,6 @@ namespace cadmia::modeling {
         }
 
       public:
-
         // Represent an empty interval as (v, v). Defaults to (0, 0).
         static interval empty_interval() {
             return open(T{}, T{});
@@ -235,10 +234,10 @@ namespace cadmia::modeling {
                 return interval::empty_interval();
             }
             interval r{};
-            add_endpoint(a.lower, a.lower_inf_sign, b.lower, b.lower_inf_sign,
-                         r.lower, r.lower_inf_sign);
-            add_endpoint(a.upper, a.upper_inf_sign, b.upper, b.upper_inf_sign,
-                         r.upper, r.upper_inf_sign);
+            add_endpoint(a.lower, a.lower_inf_sign, b.lower, b.lower_inf_sign, r.lower,
+                         r.lower_inf_sign);
+            add_endpoint(a.upper, a.upper_inf_sign, b.upper, b.upper_inf_sign, r.upper,
+                         r.upper_inf_sign);
             if (invalid_order(r.lower, r.lower_inf_sign, r.upper, r.upper_inf_sign)) {
                 return interval::empty_interval();
             }
@@ -253,10 +252,10 @@ namespace cadmia::modeling {
                 return interval::empty_interval();
             }
             interval r{};
-            sub_endpoint(l.lower, l.lower_inf_sign, e.upper, e.upper_inf_sign,
-                         r.lower, r.lower_inf_sign);
-            sub_endpoint(l.upper, l.upper_inf_sign, e.lower, e.lower_inf_sign,
-                         r.upper, r.upper_inf_sign);
+            sub_endpoint(l.lower, l.lower_inf_sign, e.upper, e.upper_inf_sign, r.lower,
+                         r.lower_inf_sign);
+            sub_endpoint(l.upper, l.upper_inf_sign, e.lower, e.lower_inf_sign, r.upper,
+                         r.upper_inf_sign);
             if (invalid_order(r.lower, r.lower_inf_sign, r.upper, r.upper_inf_sign)) {
                 return interval::empty_interval();
             }

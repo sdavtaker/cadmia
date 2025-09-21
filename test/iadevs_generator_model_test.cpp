@@ -1,0 +1,167 @@
+// SPDX-License-Identifier: BSD-2-Clause
+/**
+ * Copyright (c) 2025, Damian Vicino
+ * Carleton University, Universite de Nice-Sophia Antipolis
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+// Basic tests for IA-DEVS generator model
+#include <catch2/catch_test_macros.hpp>
+
+#include <cadmia/basic_model/iadevs/generator.hpp>
+
+using cadmia::iadevs::generator;
+
+namespace {
+	// Helpers to make expectations readable: build dec3 from scaled integer
+	static inline generator::dec3 ts(int raw_scaled) {
+		return generator::dec3::from_scaled(raw_scaled);
+	}
+}
+
+SCENARIO("IA-DEVS generator basic construction and Q_I tuple", "[iadevs][generator]") {
+	GIVEN("an initial state s0 = [0,0]") {
+		const auto s0 = generator::state_t::closed(ts(0), ts(0));
+
+		THEN("the state interval is closed and non-empty") {
+			REQUIRE_FALSE(s0.is_empty());
+			REQUIRE(s0.lower == ts(0));
+			REQUIRE(s0.upper == ts(0));
+			REQUIRE(s0.lower_closed);
+			REQUIRE(s0.upper_closed);
+		}
+
+		AND_GIVEN("a Q_I tuple with elapsed = [0,0]") {
+			generator::q_interval q0{.state = s0,
+									  .elapsed = generator::state_t::closed(ts(0), ts(0))};
+			THEN("both components remain [0,0]") {
+				REQUIRE(q0.state.lower == ts(0));
+				REQUIRE(q0.state.upper == ts(0));
+				REQUIRE(q0.elapsed.lower == ts(0));
+				REQUIRE(q0.elapsed.upper == ts(0));
+			}
+		}
+	}
+}
+
+SCENARIO("IA-DEVS generator lambda/output interval", "[iadevs][generator]") {
+	GIVEN("any state (use [0,0] for convenience)") {
+		const auto s = generator::state_t::closed(ts(0), ts(0));
+		WHEN("output(s) is computed") {
+			const auto y = generator::output(s);
+			THEN("the output interval is [1.997, 2.003] and closed") {
+				REQUIRE_FALSE(y.is_empty());
+				REQUIRE(y.lower == ts(1997));
+				REQUIRE(y.upper == ts(2003));
+				REQUIRE(y.lower_closed);
+				REQUIRE(y.upper_closed);
+			}
+		}
+	}
+}
+
+SCENARIO("IA-DEVS generator internal and external transitions", "[iadevs][generator]") {
+	GIVEN("a state s1 = [0.500, 0.700]") {
+		const auto s1 = generator::state_t::closed(ts(500), ts(700));
+
+		WHEN("internal_transition(s1) is applied") {
+			const auto s_after_int = generator::internal_transition(s1);
+			THEN("the state becomes [0,0]") {
+				REQUIRE(s_after_int.lower == ts(0));
+				REQUIRE(s_after_int.upper == ts(0));
+			}
+		}
+
+		AND_GIVEN("a Q_I tuple with state=[0.600,0.800] and elapsed=[0.300,0.400]") {
+			generator::q_interval q{};
+			q.state   = generator::state_t::closed(ts(600), ts(800));   // [0.600, 0.800]
+			q.elapsed = generator::state_t::closed(ts(300), ts(400));   // [0.300, 0.400]
+
+			WHEN("external_transition(q, output(s1)) is applied and overflows upper") {
+				REQUIRE_THROWS_AS(generator::external_transition(q, generator::output(s1)), std::invalid_argument);
+				AND_THEN("using operator+ yields the same interval") {
+					const auto via_plus = q.state + q.elapsed;
+					// via_plus is raw sum; clamp applied by external_transition
+					REQUIRE(via_plus.lower == ts(900));
+					REQUIRE(via_plus.upper == ts(1200));
+				}
+			}
+		}
+
+		AND_GIVEN("a Q_I tuple within bounds on upper") {
+			generator::q_interval q{};
+			q.state   = generator::state_t::closed(ts(600), ts(800));   // [0.600, 0.800]
+			q.elapsed = generator::state_t::closed(ts(200), ts(205));   // [0.200, 0.205]
+			WHEN("external_transition(q, output(s1)) is applied within bounds") {
+				const auto s_after_ext = generator::external_transition(q, generator::output(s1));
+				THEN("the result stays within [0, 1.005]") {
+					REQUIRE_FALSE(s_after_ext.is_empty());
+					REQUIRE(s_after_ext.lower == ts(800));   // 0.600 + 0.200
+					REQUIRE(s_after_ext.upper == ts(1005));  // 0.800 + 0.205
+					REQUIRE(s_after_ext.lower_closed);
+					REQUIRE(s_after_ext.upper_closed);
+				}
+			}
+		}
+
+		AND_GIVEN("a Q_I tuple exceeding the maximum bound on both ends") {
+			generator::q_interval q{};
+			q.state   = generator::state_t::closed(ts(800), ts(1000));  // [0.800, 1.000]
+			q.elapsed = generator::state_t::closed(ts(300), ts(600));   // [0.300, 0.600]
+			WHEN("external_transition clamps to 1.005") {
+				REQUIRE_THROWS_AS(generator::external_transition(q, generator::output(s1)), std::invalid_argument);
+			}
+		}
+	}
+}
+
+SCENARIO("IA-DEVS generator time advance (TA) semantics and clamping", "[iadevs][generator]") {
+	GIVEN("the fixed period [0.997, 1.005]") {
+		WHEN("s = [0,0]") {
+			const auto t = generator::time_advance(generator::state_t::closed(ts(0), ts(0)));
+			THEN("TA(s) = [0.997, 1.005] closed") {
+				REQUIRE_FALSE(t.is_empty());
+				REQUIRE(t.lower == ts(997));
+				REQUIRE(t.upper == ts(1005));
+				REQUIRE(t.lower_closed);
+				REQUIRE(t.upper_closed);
+			}
+		}
+		AND_WHEN("s = [1.000, 1.000]") {
+			const auto t = generator::time_advance(generator::state_t::closed(ts(1000), ts(1000)));
+			THEN("TA(s) = [0, 0.005] closed") {
+				REQUIRE_FALSE(t.is_empty());
+				REQUIRE(t.lower == ts(0));
+				REQUIRE(t.upper == ts(5));
+				REQUIRE(t.lower_closed);
+				REQUIRE(t.upper_closed);
+			}
+		}
+		AND_WHEN("s = [2.000, 2.000]") {
+			THEN("state outside bound causes an exception") {
+				REQUIRE_THROWS_AS(generator::time_advance(generator::state_t::closed(ts(2000), ts(2000))), std::invalid_argument);
+			}
+		}
+	}
+}
