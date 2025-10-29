@@ -35,6 +35,13 @@ CadmIA will prioritize clear, deterministic IA‑DEVS semantics. Concurrency sup
 re‑evaluated with standard C++ facilities (e.g., jthread) rather than Boost. Details will be
 documented once the single‑threaded IA‑DEVS engine is complete.
 
+## AI coding agents
+To keep contributor guidance consistent across IDEs and AI assistants, this repository defines
+editor-agnostic rules for automated coding agents. See `agents.md` for the conventions AI tools
+should follow (response format for change requests, C++23 coding standards, project constraints,
+and testing expectations). This centralized file replaces any IDE-specific configuration to avoid
+drift over time.
+
 ## References
 * IA‑DEVS specification (VWD21): https://cell-devs-02.sce.carleton.ca/publications/2021/VWD21/
 	(local: `uadevs-paper.tex`).

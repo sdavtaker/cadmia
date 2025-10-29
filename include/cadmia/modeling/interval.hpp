@@ -29,9 +29,66 @@
 
 #include <concepts>
 #include <stdexcept>
+#include <limits>
 #include <type_traits>
 
+#include <cadmia/modeling/decimal.hpp>
+
 namespace cadmia::modeling {
+    // Overflow handling policy: default (no overflow to infinity), specialized for int
+    template <typename T>
+    struct interval_overflow_policy {
+        static constexpr bool add_overflow(const T &, const T &) noexcept { return false; }
+        static constexpr bool add_underflow(const T &, const T &) noexcept { return false; }
+        static constexpr bool sub_overflow(const T &, const T &) noexcept { return false; }
+        static constexpr bool sub_underflow(const T &, const T &) noexcept { return false; }
+    };
+
+    template <>
+    struct interval_overflow_policy<int> {
+        static constexpr bool add_overflow(int a, int b) noexcept {
+            return (b > 0) && (a > std::numeric_limits<int>::max() - b);
+        }
+        static constexpr bool add_underflow(int a, int b) noexcept {
+            return (b < 0) && (a < std::numeric_limits<int>::min() - b);
+        }
+        static constexpr bool sub_overflow(int a, int b) noexcept {
+            // a - b > INT_MAX  <=>  a > INT_MAX + b
+            return (b < 0) && (a > std::numeric_limits<int>::max() + b);
+        }
+        static constexpr bool sub_underflow(int a, int b) noexcept {
+            // a - b < INT_MIN  <=>  a < INT_MIN + b
+            return (b > 0) && (a < std::numeric_limits<int>::min() + b);
+        }
+    };
+
+    // Specialization for fixed-point decimal: detect overflow on underlying raw_type
+    template <unsigned int Scale, std::integral Raw>
+    struct interval_overflow_policy<decimal<Scale, Raw>> {
+        using dec_t = decimal<Scale, Raw>;
+        static constexpr bool add_overflow(const dec_t &a, const dec_t &b) noexcept {
+            const Raw ar = a.raw_value();
+            const Raw br = b.raw_value();
+            return (br > 0) && (ar > std::numeric_limits<Raw>::max() - br);
+        }
+        static constexpr bool add_underflow(const dec_t &a, const dec_t &b) noexcept {
+            const Raw ar = a.raw_value();
+            const Raw br = b.raw_value();
+            return (br < 0) && (ar < std::numeric_limits<Raw>::min() - br);
+        }
+        static constexpr bool sub_overflow(const dec_t &a, const dec_t &b) noexcept {
+            const Raw ar = a.raw_value();
+            const Raw br = b.raw_value();
+            // a - b > max <=> a > max + b
+            return (br < 0) && (ar > std::numeric_limits<Raw>::max() + br);
+        }
+        static constexpr bool sub_underflow(const dec_t &a, const dec_t &b) noexcept {
+            const Raw ar = a.raw_value();
+            const Raw br = b.raw_value();
+            // a - b < min <=> a < min + b
+            return (br > 0) && (ar < std::numeric_limits<Raw>::min() + br);
+        }
+    };
 
     // Types usable in interval must be totally ordered and default-initializable
     // (default value is treated as the additive identity "zero" where needed).
@@ -96,6 +153,14 @@ namespace cadmia::modeling {
         static constexpr void add_endpoint(const T &a, int a_inf, const T &b, int b_inf, T &out_val,
                                            int &out_inf) noexcept {
             if (a_inf == 0 && b_inf == 0) {
+                if (interval_overflow_policy<T>::add_overflow(a, b)) {
+                    out_inf = +1;
+                    return;
+                }
+                if (interval_overflow_policy<T>::add_underflow(a, b)) {
+                    out_inf = -1;
+                    return;
+                }
                 out_val = a + b;
                 out_inf = 0;
                 return;
@@ -118,6 +183,14 @@ namespace cadmia::modeling {
         static constexpr void sub_endpoint(const T &a, int a_inf, const T &b, int b_inf, T &out_val,
                                            int &out_inf) noexcept {
             if (a_inf == 0 && b_inf == 0) {
+                if (interval_overflow_policy<T>::sub_overflow(a, b)) {
+                    out_inf = +1;
+                    return;
+                }
+                if (interval_overflow_policy<T>::sub_underflow(a, b)) {
+                    out_inf = -1;
+                    return;
+                }
                 out_val = a - b;
                 out_inf = 0;
                 return;
