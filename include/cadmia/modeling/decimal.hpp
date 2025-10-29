@@ -59,7 +59,9 @@ namespace cadmia::modeling {
         }
 
         // Accessor for the underlying scaled raw value (value * 10^Scale)
-        constexpr raw_type raw_value() const noexcept { return raw_; }
+        constexpr raw_type raw_value() const noexcept {
+            return raw_;
+        }
         // Basic arithmetic
         friend constexpr decimal operator+(decimal a, decimal b) {
             return decimal::from_scaled(static_cast<raw_type>(a.raw_ + b.raw_));

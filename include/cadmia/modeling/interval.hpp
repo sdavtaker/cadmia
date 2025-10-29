@@ -27,25 +27,31 @@
 
 #pragma once
 
-#include <concepts>
-#include <stdexcept>
-#include <limits>
-#include <type_traits>
-
 #include <cadmia/modeling/decimal.hpp>
+
+#include <concepts>
+#include <limits>
+#include <stdexcept>
+#include <type_traits>
 
 namespace cadmia::modeling {
     // Overflow handling policy: default (no overflow to infinity), specialized for int
-    template <typename T>
-    struct interval_overflow_policy {
-        static constexpr bool add_overflow(const T &, const T &) noexcept { return false; }
-        static constexpr bool add_underflow(const T &, const T &) noexcept { return false; }
-        static constexpr bool sub_overflow(const T &, const T &) noexcept { return false; }
-        static constexpr bool sub_underflow(const T &, const T &) noexcept { return false; }
+    template <typename T> struct interval_overflow_policy {
+        static constexpr bool add_overflow(const T &, const T &) noexcept {
+            return false;
+        }
+        static constexpr bool add_underflow(const T &, const T &) noexcept {
+            return false;
+        }
+        static constexpr bool sub_overflow(const T &, const T &) noexcept {
+            return false;
+        }
+        static constexpr bool sub_underflow(const T &, const T &) noexcept {
+            return false;
+        }
     };
 
-    template <>
-    struct interval_overflow_policy<int> {
+    template <> struct interval_overflow_policy<int> {
         static constexpr bool add_overflow(int a, int b) noexcept {
             return (b > 0) && (a > std::numeric_limits<int>::max() - b);
         }
