@@ -1,1 +1,12 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# CadmIA CMake Package Configuration
+
 @PACKAGE_INIT@
+
+# Ensure C++23 is available
+include(CMakeFindDependencyMacro)
+
+# Include the targets file
+include("${CMAKE_CURRENT_LIST_DIR}/cadmiaTargets.cmake")
+
+check_required_components(cadmia)
