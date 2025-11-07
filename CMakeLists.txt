@@ -126,10 +126,8 @@ if(CADMIA_BUILD_TESTS)
         )
     endif()
     
-    # Add test subdirectories
+    # Add test subdirectories (unit and concepts)
     add_subdirectory(test)
-    add_subdirectory(test-compile/compiles)
-    add_subdirectory(test-compile/compile-fails)
 endif()
 
 # ============================================================================
@@ -210,7 +208,8 @@ if(CLANG_FORMAT)
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/example/**/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/test/**/*.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/test-compile/**/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/test/unit/**/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/test/concepts/**/*.cpp"
     )
     
     # Collect files to format
