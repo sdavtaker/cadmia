@@ -170,7 +170,8 @@ namespace cadmia::iadevs {
                 auto lb         = proc - s.upper.tocj;
                 // Clamp to non-negative lower bound
                 const time_t z{};
-                if (lb < z) lb = z;
+                if (lb < z)
+                    lb = z;
                 return time_i_t::right_open(lb, cadmia::modeling::plus_inf);
             }
             // Safety: if upper empty (should not happen for valid intervals), treat as passive

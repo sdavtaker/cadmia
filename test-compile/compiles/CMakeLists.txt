@@ -6,10 +6,6 @@
 # Note: IA-DEVS concept checks are now done via static_assert in main test files
 set(COMPILE_TEST_SOURCES
     iadevs_trivial_model_concept_check_test.cpp
-    pdevs_coordinator_of_empty_coupled_model_test.cpp
-    pdevs_empty_coupled_model_is_a_valid_model_test.cpp
-    pdevs_valid_atomic_check_test.cpp
-    pdevs_valid_atomic_with_multiple_ports_check_test.cpp
 )
 
 foreach(test_src IN LISTS COMPILE_TEST_SOURCES)

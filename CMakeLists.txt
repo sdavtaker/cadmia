@@ -175,7 +175,7 @@ install(
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cadmiumConfig.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/cadmiaConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/cadmiaConfig.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cadmia
 )
