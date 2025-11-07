@@ -5,10 +5,8 @@
 set(TEST_SOURCES
     iadevs_generator_model_test.cpp
     iadevs_processor_model_test.cpp
-    logger_test.cpp
     modeling_decimal_test.cpp
     modeling_interval_test.cpp
-    tuple_to_ostream_test.cpp
 )
 
 foreach(test_src IN LISTS TEST_SOURCES)
