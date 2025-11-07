@@ -46,68 +46,67 @@ namespace cadmia::iadevs {
     // IA-DEVS Generator with fixed time type and fixed value interval.
     class generator {
       public:
+        // Base types required by IADEVSAtomicModel concept
+        using dec3     = cadmia::modeling::decimal<3>; // convenience alias
+        using time_t   = dec3;                         // time base type
+        using state_t  = dec3;                         // state base type
+        using input_t  = dec3;                         // input base type
+        using output_t = dec3;                         // output base type
+
+        // Interval aliases for convenience (not required by concept)
+        using time_i_t   = cadmia::modeling::interval<time_t>;
+        using state_i_t  = cadmia::modeling::interval<state_t>;
+        using input_i_t  = cadmia::modeling::interval<input_t>;
+        using output_i_t = cadmia::modeling::interval<output_t>;
+
         // Time is decimal with 3 fractional digits (milliseconds resolution).
         static constexpr int default_rounding_granularity_units = 100; // e.g., 100 → 0.01
-        using dec3    = cadmia::modeling::decimal<3>;                  // convenience alias
-        using time_t  = cadmia::modeling::interval<dec3>;              // time in R^+_I (interval)
-        using state_t = cadmia::modeling::interval<dec3>;              // state in R^+_I (interval)
-        struct q_interval {                                            // Q_I = S_I × R^+_I
-            state_t state;
-            time_t elapsed;
-        };
-
-        // Clearer alias for Q_I tuple
-        using q_interval_t = q_interval; // _t alias
-
-        // Alias for numeric output interval
-        using output_value_t = cadmia::modeling::interval<dec3>;
-        using input_value_t  = cadmia::modeling::interval<dec3>;
 
         // Approximated functions (operate on intervals), matching Section 4.
         // internal(s) = [0,0] (validate input is within bounds even if ignored)
-        [[nodiscard]] static state_t internal_transition(const state_t &s) {
+        [[nodiscard]] static state_i_t internal_transition(const state_i_t &s) {
             validate_state_interval(s, "internal_transition", "state");
-            return state_t::closed(dec3{}, dec3{});
+            return state_i_t::closed(state_t{}, state_t{});
         }
 
-        // external(q, x): validate inputs in [0, 1.005], then sum; validate result stays within
-        // bounds.
-        [[nodiscard]] static state_t external_transition(const q_interval_t &q,
-                                                         const input_value_t &x) {
+        // external(state, elapsed, x): validate inputs in [0, 1.005], then sum
+        [[nodiscard]] static state_i_t
+        external_transition(const state_i_t &state, const time_i_t &elapsed, const input_i_t &x) {
             (void)x; // no inputs used
-            validate_state_interval(q.state, "external_transition", "q.state");
-            validate_state_interval(q.elapsed, "external_transition", "q.elapsed");
-            const auto sum = q.state + q.elapsed;
+            validate_state_interval(state, "external_transition", "state");
+            validate_state_interval(elapsed, "external_transition", "elapsed");
+            const auto sum = state + elapsed;
             validate_state_interval(sum, "external_transition", "state result");
             return sum;
         }
 
         // output(s) = [1.997, 2.003]
-        [[nodiscard]] static output_value_t output(const state_t &) {
-            return output_value_t::closed(dec3::from_scaled(1997), dec3::from_scaled(2003));
+        [[nodiscard]] static output_i_t output(const state_i_t &) {
+            return output_i_t::closed(output_t::from_scaled(1997), output_t::from_scaled(2003));
         }
 
         // time_advance(s): validate state, then return [earliest, latest] per IA-DEVS
-        [[nodiscard]] static time_t time_advance(const state_t &s) {
+        [[nodiscard]] static time_i_t time_advance(const state_i_t &s) {
             validate_state_interval(s, "time_advance", "state");
-            const auto period = time_t::closed(dec3::from_scaled(997), dec3::from_scaled(1005));
-            const auto raw    = period - s; // { l - e | l∈period, e∈s }
+            const auto period =
+                time_i_t::closed(time_t::from_scaled(997), time_t::from_scaled(1005));
+            const auto raw = period - s; // { l - e | l∈period, e∈s }
             return clamp_time_interval(raw);
         }
 
       private:
         // Helpers
-        static constexpr dec3 zero_time() noexcept {
-            return dec3{};
+        static constexpr time_t zero_time() noexcept {
+            return time_t{};
         }
 
         // Validate state/time intervals are within [0, 1.005]. Throw if out of bounds.
-        static void validate_state_interval(const state_t &in, const char *where,
+        static void validate_state_interval(const state_i_t &in, const char *where,
                                             const char *name) {
             if (in.is_empty())
                 return; // empty carries its own semantics
-            const dec3 z{};
-            const dec3 ub = dec3::from_scaled(1005);
+            const state_t z{};
+            const state_t ub = state_t::from_scaled(1005);
             if (in.lower < z || in.upper < z || in.lower > ub || in.upper > ub) {
                 throw std::invalid_argument(std::string(where) + ": " + name +
                                             " outside [0, 1.005]");
@@ -115,11 +114,11 @@ namespace cadmia::iadevs {
         }
 
         // Apply bounds to R^+_I for time advances: intersect with [0, +inf)
-        [[nodiscard]] static time_t clamp_time_interval(const time_t &in) {
+        [[nodiscard]] static time_i_t clamp_time_interval(const time_i_t &in) {
             if (in.is_empty())
                 return in;
-            time_t out{};
-            const dec3 z{};
+            time_i_t out{};
+            const time_t z{};
             // Lower bound clamp
             out.lower = (in.lower < z) ? z : in.lower;
             // If upper < 0, clamp to 0 as well
