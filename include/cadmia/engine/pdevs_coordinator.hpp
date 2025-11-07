@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/concepts/coupled_model_assert.hpp>
 #include <cadmia/engine/pdevs_engine_helpers.hpp>
 #include <cadmia/engine/pdevs_simulator.hpp>
 #include <cadmia/logger/common_loggers.hpp>

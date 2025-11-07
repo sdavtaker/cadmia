@@ -30,7 +30,7 @@
  * atomic_model_assert.
  */
 
-#include <cadmia/concept/atomic_model_assert.hpp>
+#include <cadmia/concepts/atomic_model_assert.hpp>
 #include <cadmia/modeling/message_bag.hpp>
 #include <cadmia/modeling/ports.hpp>
 

@@ -31,7 +31,7 @@
 
 #include <cadmia/basic_model/pdevs/generator.hpp>
 #include <cadmia/basic_model/pdevs/passive.hpp>
-#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/concepts/coupled_model_assert.hpp>
 #include <cadmia/modeling/coupling.hpp>
 
 // a generator using floating point messages

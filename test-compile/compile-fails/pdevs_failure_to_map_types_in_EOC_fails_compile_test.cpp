@@ -30,7 +30,7 @@
  */
 
 #include <cadmia/basic_model/pdevs/generator.hpp>
-#include <cadmia/concept/coupled_model_assert.hpp>
+#include <cadmia/concepts/coupled_model_assert.hpp>
 #include <cadmia/modeling/coupling.hpp>
 #include <cadmia/modeling/ports.hpp>
 

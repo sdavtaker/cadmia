@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <cadmia/concept/atomic_model_assert.hpp>
+#include <cadmia/concepts/atomic_model_assert.hpp>
 #include <cadmia/engine/pdevs_engine_helpers.hpp>
 #include <cadmia/logger/common_loggers.hpp>
 #include <cadmia/modeling/message_bag.hpp>

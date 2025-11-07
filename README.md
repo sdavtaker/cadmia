@@ -25,9 +25,8 @@ implemented and validated.
 ### Install
 * The library is header‑only. Add the `include` directory to your compiler's include paths. Install by CMAKE is available.
 
-### Building tests and examples
-Current repository layout still contains legacy PDEVS examples and tests from Cadmium while
-CadmIA is being implemented. Testing requires:
+### Building tests
+Testing requires:
 * Catch2 (brought via vcpkg in the provided CMake setup).
 
 ## Notes on concurrency (roadmap)

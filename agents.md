@@ -29,11 +29,18 @@ These guidelines apply to any AI coding agent (VS Code, JetBrains IDEs, Neovim, 
 - Prefer compile-time checks (`static_assert`, `constexpr`) over runtime checks.
 - Avoid global variables; prefer passing parameters or using class members.
 - For code correctness, refer to the C++ Core Guidelines: https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines
-- We are building a C++ library for AI-DEVS simulation. For functionality correctness, refer to `uadevs-paper.tex` if it is available in this repo. Otherwise, refer to the online version in: https://cell-devs-02.sce.carleton.ca/publications/2021/VWD21/Uncertainty%2069.pdf
+- We are building a C++ library for IA-DEVS simulation. For functionality correctness, refer to `uadevs-paper.tex` if it is available in this repo. Otherwise, refer to the online version in: https://cell-devs-02.sce.carleton.ca/publications/2021/VWD21/Uncertainty%2069.pdf
 - Prefer STL algorithms and data structures over custom implementations.
 - Exceptions: prefer standard exceptions; document the exception-safety guarantee (strong, basic, no-throw in every function).
 - Prefer descriptive variable and function names.
 - Detect input errors early and fail loudly.
+- Prefer `using` over `typedef`
+
+## Historical context
+
+- This project started as a fork of the Cadmium PDEVS simulator to provide a solid foundation and reference implementation while transitioning to IA-DEVS.
+- PDEVS-specific code has been removed from this repository as the IA-DEVS implementation matured.
+- For reference to the original Cadmium PDEVS implementation, see: https://github.com/SimulationEverywhere/cadmium
 
 ## Project constraints
 

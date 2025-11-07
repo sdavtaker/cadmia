@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <cadmia/concept/concept_helpers.hpp>
+#include <cadmia/concepts/concept_helpers.hpp>
 #include <cadmia/engine/common_helpers.hpp>
 #include <cadmia/logger/common_loggers.hpp>
 #include <cadmia/logger/common_loggers_helpers.hpp>

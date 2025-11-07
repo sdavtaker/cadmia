@@ -31,7 +31,7 @@
  */
 
 #include <cadmia/basic_model/pdevs/generator.hpp>
-#include <cadmia/concept/atomic_model_assert.hpp>
+#include <cadmia/concepts/atomic_model_assert.hpp>
 
 // preparing the generator to be used as atomic model
 template <typename TIME>

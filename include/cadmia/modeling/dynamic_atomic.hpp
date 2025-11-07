@@ -27,8 +27,8 @@
 
 #pragma once
 
-#include <cadmia/concept/atomic_model_assert.hpp>
-#include <cadmia/concept/concept_helpers.hpp>
+#include <cadmia/concepts/atomic_model_assert.hpp>
+#include <cadmia/concepts/concept_helpers.hpp>
 #include <cadmia/modeling/dynamic_message_bag.hpp>
 #include <cadmia/modeling/dynamic_model.hpp>
 #include <cadmia/modeling/dynamic_models_helpers.hpp>
