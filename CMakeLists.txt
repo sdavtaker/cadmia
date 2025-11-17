@@ -237,3 +237,33 @@ else()
     message(STATUS "clang-format not found; 'format' and 'check-format' targets unavailable")
 endif()
 
+# ============================================================================
+# Documentation (LaTeX) - Optional
+# ============================================================================
+
+find_program(PDFLATEX_EXECUTABLE
+    NAMES pdflatex
+    DOC "Path to pdflatex executable"
+)
+
+if(PDFLATEX_EXECUTABLE)
+    set(DOC_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/doc")
+    set(DOC_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/doc")
+    
+    # Create output directory for PDF
+    file(MAKE_DIRECTORY ${DOC_BINARY_DIR})
+    
+    # Target: build-doc - Compile LaTeX documentation
+    add_custom_target(build-doc
+        COMMAND ${PDFLATEX_EXECUTABLE} -output-directory=${DOC_BINARY_DIR} -interaction=nonstopmode main.tex
+        COMMAND ${PDFLATEX_EXECUTABLE} -output-directory=${DOC_BINARY_DIR} -interaction=nonstopmode main.tex
+        WORKING_DIRECTORY ${DOC_SOURCE_DIR}
+        COMMENT "Building LaTeX documentation (main.pdf)"
+        VERBATIM
+    )
+    
+    message(STATUS "LaTeX found; 'build-doc' target available")
+else()
+    message(STATUS "pdflatex not found; 'build-doc' target unavailable (optional)")
+endif()
+
