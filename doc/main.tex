@@ -1,0 +1,39 @@
+\documentclass[11pt,letterpaper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    citecolor=green,
+}
+
+% Document metadata
+\title{Cadmia IA-DEVS Model Specifications}
+\author{Cadmia Project}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\clearpage
+
+% Include model specifications
+\input{counter-model-spec}
+
+% Future model specifications can be added here
+% \input{generator-model-spec}
+% \input{processor-model-spec}
+
+\end{document}

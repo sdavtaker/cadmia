@@ -1,0 +1,303 @@
+\section{Introduction}
+
+This document describes a \textbf{Counter} atomic model in both UA-DEVS (Uncertainty-Aware DEVS) and IA-DEVS (Interval-Approximated DEVS) formalisms. The Counter model accumulates incoming events and outputs the accumulated count when reset.
+
+\section{Informal Description}
+
+The Counter model receives two types of events:
+\begin{itemize}
+    \item \textbf{Add}: Increments an internal counter by 1.
+    \item \textbf{Reset}: Outputs the current accumulated count and resets the counter to 0.
+\end{itemize}
+
+After processing an \textit{Add} event, the model becomes passive (waits indefinitely for the next event). After receiving a \textit{Reset} event, the model outputs the accumulated count with time advance of 0 (immediate output) and then resets its internal counter to 0.
+
+\section{UA-DEVS Counter Specification}
+
+Following the UA-DEVS formalism from ``Uncertainty Aware Discrete-Event System Simulation''~\cite{vicino2021uncertainty}, we define the Counter model as:
+
+\subsection{Model Definition}
+
+The Counter atomic model is defined as the tuple:
+\[
+Counter_{UA} = \langle X, Y, S, \delta_{int}, \delta_{ext}, \lambda, ta \rangle
+\]
+where:
+
+\begin{itemize}
+    \item $X = \mathcal{P}(\{\text{Add}, \text{Reset}\}) \setminus \emptyset$ is the set of input values (non-empty subsets of event types). This allows representing uncertainty about which event(s) occurred, including:
+    \begin{itemize}
+        \item $\{\text{Add}\}$: definitely an Add event
+        \item $\{\text{Reset}\}$: definitely a Reset event
+        \item $\{\text{Add}, \text{Reset}\}$: uncertain which event occurred (could be either)
+    \end{itemize}
+    \item $Y = \mathcal{P}(\mathbb{N}) \setminus \emptyset$ is the set of output values (non-empty subsets of non-negative integers). This allows outputting sets of possible count values to represent uncertainty.
+    \item $S = \mathcal{P}(\{\text{passive}, \text{output}\} \times \mathbb{N}) \setminus \emptyset$ is the state space (non-empty subsets of phase-count pairs). This captures uncertainty about the current state. Any valid state in $S$ can serve as an initial state when instantiated by the simulator.
+\end{itemize}
+
+\subsection{Transition Functions}
+
+	extbf{Internal Transition ($\delta_{int}$):}
+	extbf{Internal Transition ($\delta_{int}$):}
+\[
+\delta_{int}(S') = \{(\text{passive}, 0) \mid (\text{output}, c) \in S'\}
+\]
+    extbf{External Transition ($\delta_{ext}$):}
+
+Given a state set $S' \subseteq S$, elapsed time set $E \subseteq \mathbb{R}^+_0$, and input set $X' \subseteq X$:
+\[
+\delta_{ext}(S', E, X') = \bigcup_{s \in S', e \in E, x \in X'} \delta_{ext}^{single}(s, e, x)
+\]
+where $\delta_{ext}^{single}$ operates on individual elements:
+\[
+\delta_{ext}^{single}((\phi, c), e, x) = 
+\begin{cases}
+    \{(\text{passive}, c + 1)\} & \text{if } x = \text{Add} \\
+    \{(\text{output}, c)\} & \text{if } x = \text{Reset}
+\end{cases}
+\]
+
+The elapsed time $e$ does not affect the state for this model. When $X' = \{\text{Add}, \text{Reset}\}$, the result includes both the incremented state and the output state, capturing the uncertainty.
+
+\bigskip
+
+	extbf{Output Function ($\lambda$):}
+\[
+\lambda(S') = \{c \mid (\text{output}, c) \in S'\}
+\]
+Output the set of all possible count values from states in the output phase.
+
+\bigskip
+
+\textbf{Time Advance ($ta$):}
+\[
+ta(S') = \begin{cases}
+    \{\infty\} & \text{if } \forall (\phi, c) \in S', \phi = \text{passive} \\
+    \{0\} & \text{if } \forall (\phi, c) \in S', \phi = \text{output} \\
+    \{0, \infty\} & \text{if } \exists (\text{passive}, c_1), (\text{output}, c_2) \in S'
+\end{cases}
+\]
+The time advance returns a set representing all possible next event times. When states are mixed between passive and output phases, both immediate (0) and infinite time advances are possible.
+
+\subsection{Behavior Description}
+
+The Counter model can be initialized by the simulator with any valid state from $S$. For typical usage, it might start at $\{(\text{passive}, 0)\}$ and wait indefinitely. Upon receiving input $\{\text{Add}\}$, it transitions to $\{(\text{passive}, 1)\}$ and remains passive. Upon receiving input $\{\text{Reset}\}$, it transitions to $\{(\text{output}, c)\}$ with $ta = \{0\}$. Immediately, the output function $\lambda$ emits the set $\{c\}$, and then the internal transition $\delta_{int}$ resets the state to $\{(\text{passive}, 0)\}$.
+
+When there is uncertainty in the input (e.g., $\{\text{Add}, \text{Reset}\}$), the external transition produces multiple possible states. For example, from state $\{(\text{passive}, 3)\}$ with input $\{\text{Add}, \text{Reset}\}$, the result is $\{(\text{passive}, 4), (\text{output}, 3)\}$, capturing both possibilities.
+
+\section{IA-DEVS Counter Specification}
+
+In IA-DEVS, we work with intervals to approximate sets of values to work with uncertainty in computable context. All components (states, times, inputs, outputs) are represented as intervals $[l, u]$ where $l$ and $u$ are the lower and upper bounds.
+
+\subsection{Order Relations}
+
+For intervals to be well-defined in IA-DEVS, we must establish total order relations on the base types:
+
+\begin{itemize}
+    \item \textbf{Input event order}: $\text{Add} < \text{Reset}$. This ordering allows representing input uncertainty as intervals. For example, $[\text{Add}, \text{Reset}]$ represents uncertainty about which event occurred.
+    
+    \item \textbf{Phase order}: $\text{passive} < \text{output}$. The phases are ordered with passive coming first.
+    
+    \item \textbf{State order}: States $(\phi, c) \in \{\text{passive}, \text{output}\} \times \mathbb{N}$ are ordered lexicographically, first by phase, then by count value:
+    \[
+    (\phi_1, c_1) < (\phi_2, c_2) \iff \phi_1 < \phi_2 \text{ or } (\phi_1 = \phi_2 \text{ and } c_1 < c_2)
+    \]
+    This means all passive states come before all output states, and within each phase, states are ordered by their count value.
+    
+    \item \textbf{Output order}: Outputs are natural numbers with the standard ordering $\mathbb{N}$.
+\end{itemize}
+
+These orderings enable interval arithmetic and ensure that interval operations (union, intersection, etc.) produce well-defined results.
+
+\subsection{Model Definition}
+
+The IA-DEVS Counter model is:
+\[
+Counter_{IA} = \langle X_I, Y_I, S_I, \Delta_{int}, \Delta_{ext}, \Lambda, TA \rangle
+\]
+
+where:
+
+\begin{itemize}
+    \item $X_I = \mathcal{I}(\{\text{Add}, \text{Reset}\})$ is the set of input intervals over the ordered set of event types. Typical intervals include $[\text{Add}, \text{Add}]$, $[\text{Reset}, \text{Reset}]$, or $[\text{Add}, \text{Reset}]$ (representing uncertainty).
+    
+    \item $Y_I = \mathcal{I}(\mathbb{Z}_{[0, \text{MAX\_INT}]})$ is the set of output intervals, where $\mathbb{Z}_{[0, \text{MAX\_INT}]}$ represents bounded integers from 0 to MAX\_INT as implemented by the computational platform. Intervals may be right-open, e.g., $[c, +\infty)$, when the upper bound reaches or exceeds MAX\_INT.
+    
+    \item $S_I = \mathcal{I}(\{\text{passive}, \text{output}\} \times \mathbb{Z}_{[0, \text{MAX\_INT}]})$ is the state interval space using bounded integers. State intervals can be:
+    \begin{itemize}
+    \item \textbf{Closed}: $[(\phi_l, c_l), (\phi_u, c_u)]$ when $c_u < \text{MAX\_INT}$ or $\phi_u = \text{output}$ prevents further growth
+    \item \textbf{Right-open}: $[(\phi_l, c_l), +\infty)$ when count growth is unbounded or reaches MAX\_INT
+    \end{itemize}
+    
+    Examples:
+    \begin{itemize}
+    \item $[(\text{passive}, 0), (\text{passive}, 5)]$: count in [0, 5], definitely passive (closed)
+    \item $[(\text{output}, 3), (\text{output}, 7)]$: count in [3, 7], definitely output (closed)
+    \item $[(\text{passive}, 2), (\text{output}, 3)]$: mixed phase and count uncertainty (closed)
+    \item $[(\text{passive}, 100), +\infty)$: count $\geq 100$, passive phase (right-open, unbounded growth)
+    \item $[(\text{passive}, \text{MAX\_INT}), +\infty)$: count at or beyond MAX\_INT (right-open, saturation)
+    \end{itemize}
+\end{itemize}
+
+Note: The initial state is determined by the simulator when instantiating the model, not by the model definition itself.
+
+\subsection{Computational Constraints}
+
+In the IA-DEVS implementation, the count values are represented using fixed-size integer types (e.g., \texttt{int32\_t}, \texttt{int64\_t}). This introduces the following considerations:
+
+\begin{itemize}
+    \item When $c_u = \text{MAX\_INT}$ and an Add event arrives, the resulting state interval must be right-open: $[(\phi, c_l + 1), +\infty)$ to represent the possibility of overflow or saturation.
+    
+    \item The implementation may choose to either:
+    \begin{enumerate}
+        \item \textbf{Saturate}: clamp values at MAX\_INT (conservative approximation)
+        \item \textbf{Signal overflow}: use right-open intervals to indicate unbounded growth
+    \end{enumerate}
+    
+    \item Right-open intervals preserve the soundness of the approximation: they over-approximate the set of reachable states, ensuring no valid trajectory is excluded.
+\end{itemize}
+
+\subsection{Approximated Transition Functions}
+
+\textbf{Internal Transition ($\Delta_{int}$):}
+
+The internal transition handles states in the output phase, resetting them to passive:
+
+\[
+\Delta_{int}([(\phi_l, c_l), (\phi_u, c_u)]) = 
+\begin{cases}
+    [(\text{passive}, 0), (\text{passive}, 0)] & \text{if } \phi_l = \phi_u = \text{output} \\
+    [(\text{passive}, 0), (\text{passive}, c_u)] & \text{if } \phi_l = \text{passive}, \phi_u = \text{output}
+\end{cases}
+\]
+
+\textbf{Explanation:}
+\begin{itemize}
+    \item When all states are in output phase ($[\text{output}, \text{output}]$), all are reset to $(\text{passive}, 0)$.
+    \item When phases are mixed ($[\text{passive}, \text{output}]$), the bound in passive state was never in output phase and does not transition; it is now the value of the upper bound, while the lower bound resets its count to 0.
+\end{itemize}
+
+\bigskip
+
+\textbf{External Transition ($\Delta_{ext}$):}
+
+Given state interval $[(\phi_l, c_l), (\phi_u, c_u)]$, elapsed time interval $[e_l, e_u]$, and input interval $[x_l, x_u]$:
+
+\begin{itemize}
+    \item If $[x_l, x_u] = [\text{Add}, \text{Add}]$:
+    \[
+    \Delta_{ext}([(\phi_l, c_l), (\phi_u, c_u)], [e_l, e_u], [\text{Add}, \text{Add}]) = [(\text{passive}, c_l + 1), (\text{passive}, c_u + 1)]
+    \]
+    If the upper bound is right-open (unbounded), the result remains right-open: $[(\text{passive}, c_l + 1), +\infty)$.
+    
+    \item If $[x_l, x_u] = [\text{Reset}, \text{Reset}]$:
+    \[
+    \Delta_{ext}([(\phi_l, c_l), (\phi_u, c_u)], [e_l, e_u], [\text{Reset}, \text{Reset}]) = [(\text{output}, c_l), (\text{output}, c_u)]
+    \]
+    The count values are preserved; only the phase changes to output. If the interval was right-open, it remains right-open.
+    
+    \item If $[x_l, x_u] = [\text{Add}, \text{Reset}]$ (uncertain input):
+    \[
+    \Delta_{ext}([(\phi_l, c_l), (\phi_u, c_u)], [e_l, e_u], [\text{Add}, \text{Reset}]) = [(\text{passive}, c_l), (\text{output}, c_u)]
+    \]
+    This captures uncertainty: lower bound corresponds to Add (increment to passive), upper bound to Reset (change to output).
+\end{itemize}
+
+The elapsed time $e$ does not affect the state in this model, as the counter only responds to discrete events.
+Note that technically, the input interval could also be open, but all open intervals in a 2-element set can be transformed into a closed one.
+
+\bigskip
+
+\textbf{Output Function ($\Lambda$):}
+
+The output function extracts count values from states in the output phase, preserving interval closure properties:
+
+For a state interval $I_s = [ (\phi_l, c_l), (\phi_u, c_u) ]$ with lower closure flag $lc$ and upper closure flag $uc$:
+
+\[
+\Lambda(I_s) = I_c
+\]
+
+where $I_c$ is the count interval with:
+\begin{itemize}
+    \item Lower bound: $c_l$ if $\phi_l = \text{output}$, otherwise the smallest count in output phase
+    \item Upper bound: $c_u$ if $\phi_u = \text{output}$, or $\infty+$ if right unbounded
+    \item Lower closure: matches $lc$ 
+    \item Upper closure: matches $uc$
+\end{itemize}
+
+\textbf{Examples:}
+\begin{itemize}
+    \item $[(\text{output}, 3), (\text{output}, 7)]$ with both closed $\Rightarrow$ output $[3, 7]$ closed
+    \item $(\text{output}, 3), (\text{output}, 7)]$ with left open, right closed $\Rightarrow$ output $(3, 7]$
+    \item $[(\text{output}, 3), (\text{output}, 7))$ with left closed, right open $\Rightarrow$ output $[3, 7)$
+    \item $[(\text{output}, 3), +\infty)$ right-open $\Rightarrow$ output $[3, +\infty)$
+    \item $[(\text{passive}, 3), (\text{output}, 7)]$ mixed phases $\Rightarrow$ output includes counts from output states [3, 7] ( $(\text{output}, 3)$ is greater than $(\text{passive}, 3)$ )
+\end{itemize}
+
+The key principle: the output interval's closure properties (open/closed at lower/upper bounds) directly mirror the closure properties of the input state interval, ensuring that boundary inclusion/exclusion semantics are preserved.
+
+\bigskip
+
+\textbf{Time Advance ($TA$):}
+\[
+TA([(\phi_l, c_l), (\phi_u, c_u)]) = 
+\begin{cases}
+    \emptyset & \text{if } \phi_l = \phi_u = \text{passive} \\
+    [0, 0] & \text{if } \phi_l = \phi_u = \text{output} \\
+    [0, +\infty) & \text{if } \phi_l = \text{passive}, \phi_u = \text{output}
+\end{cases}
+\]
+
+In IA-DEVS, an empty time advance interval $\emptyset$ represents passivity (infinite time advance). A $[0, 0]$ interval means immediate scheduling. When phases are mixed, the result is $[0, +\infty)$ (right-open) representing both immediate (for output states) and infinite (for passive states) time advances.
+
+\subsection{Implementation Notes}
+
+For the C++ implementation in the Cadmia library:
+
+\begin{itemize}
+    \item Use \texttt{cadmia::modeling::decimal<3>} for time representation (millisecond precision).
+    \item Represent states as intervals: \texttt{cadmia::modeling::interval<state\_t>} where \texttt{state\_t} contains phase enum and integer count (phase, count).
+    \item Input types: use an enumeration or integer encoding for \textit{Add} and \textit{Reset}.
+    \item Follow the existing pattern from \texttt{processor.hpp} and \texttt{generator.hpp}: define \texttt{state\_t}, \texttt{time\_t}, \texttt{input\_t}, \texttt{output\_t}, and their interval counterparts.
+    \item Implement static functions: \texttt{internal\_transition}, \texttt{external\_transition}, \texttt{output}, and \texttt{time\_advance}.
+    \item Use \texttt{interval::empty\_interval()} for passive (infinite) time advance.
+    \item Validate inputs and throw \texttt{std::invalid\_argument} for invalid states or transitions.
+\end{itemize}
+
+\subsection{Example Scenario}
+
+	extbf{Initial State:} $[(\text{passive}, 0), (\text{passive}, 0)]$, $TA = \emptyset$ (passive).
+
+\textbf{Step 1:} External input $[\text{Add}, \text{Add}]$ arrives.
+\[
+	ext{New state: } [(\text{passive}, 1), (\text{passive}, 1)], \quad TA = \emptyset
+\]
+
+\textbf{Step 2:} External input $[\text{Add}, \text{Add}]$ arrives.
+\[
+	ext{New state: } [(\text{passive}, 2), (\text{passive}, 2)], \quad TA = \emptyset
+\]
+
+\textbf{Step 3:} External input $[\text{Reset}, \text{Reset}]$ arrives.
+\[
+	ext{New state: } [(\text{output}, 2), (\text{output}, 2)], \quad TA = [0, 0]
+\]
+
+\textbf{Step 4:} Internal transition (output $[2, 2]$ and reset).
+\[
+\Lambda = [2, 2], \quad \text{New state: } [(\text{passive}, 0), (\text{passive}, 0)], \quad TA = \emptyset
+\]
+
+The cycle repeats for further events.
+
+\section{Conclusion}
+
+The Counter model illustrates a simple yet complete IA-DEVS atomic model with two input event types and interval-based state representation. This specification provides the formal foundation for implementing the model in the Cadmia C++ library and writing comprehensive unit tests.
+
+\begin{thebibliography}{1}
+\bibitem{vicino2021uncertainty}
+Damián Vicino, Gabriel Wainer, and Olivier Dalle.
+\textit{Uncertainty on Discrete-Event System Simulation}.
+ACM Transactions on Modeling and Computer Simulation (TOMACS), 2021.
+\end{thebibliography}
