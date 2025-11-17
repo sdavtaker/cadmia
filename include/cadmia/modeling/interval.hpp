@@ -221,6 +221,83 @@ namespace cadmia::modeling {
             return open(T{}, T{});
         }
 
+        // Subset check: return true if this interval is a subset of 'other'.
+        // Handles empty intervals, open/closed endpoints, and infinities.
+        [[nodiscard]] constexpr bool is_subset_of(const interval &other) const noexcept {
+            // Empty is subset of any interval
+            if (this->is_empty())
+                return true;
+            // Non-empty cannot be subset of empty
+            if (other.is_empty())
+                return false;
+
+            // Helper to check endpoint equality considering infinities
+            auto endpoints_equal = [](const T &a, int a_inf, const T &b, int b_inf) constexpr {
+                return !less_endpoints(a, a_inf, b, b_inf) &&
+                       !less_endpoints(b, b_inf, a, a_inf);
+            };
+
+            // Lower bound: require other.lower <= this.lower
+            bool lower_ok = false;
+            if (less_endpoints(other.lower, other.lower_inf_sign, lower, lower_inf_sign)) {
+                // other.lower < this.lower
+                lower_ok = true;
+            } else if (endpoints_equal(other.lower, other.lower_inf_sign, lower,
+                                       lower_inf_sign)) {
+                // Equal lower endpoints: if this includes the endpoint, other must also include it
+                lower_ok = !(lower_closed && !other.lower_closed);
+            } else {
+                // this.lower < other.lower -> not subset
+                lower_ok = false;
+            }
+
+            if (!lower_ok)
+                return false;
+
+            // Upper bound: require this.upper <= other.upper
+            bool upper_ok = false;
+            if (less_endpoints(upper, upper_inf_sign, other.upper, other.upper_inf_sign)) {
+                // this.upper < other.upper
+                upper_ok = true;
+            } else if (endpoints_equal(upper, upper_inf_sign, other.upper,
+                                       other.upper_inf_sign)) {
+                // Equal upper endpoints: if this includes the endpoint, other must also include it
+                upper_ok = !(upper_closed && !other.upper_closed);
+            } else {
+                // other.upper < this.upper -> not subset
+                upper_ok = false;
+            }
+
+            return upper_ok;
+        }
+
+        // Intersection test: return true if this interval intersects 'other'.
+        [[nodiscard]] constexpr bool intersects(const interval &other) const noexcept {
+            if (this->is_empty() || other.is_empty())
+                return false;
+
+            // If this.upper < other.lower -> no intersection
+            const bool this_before_other = less_endpoints(upper, upper_inf_sign, other.lower,
+                                                          other.lower_inf_sign) ||
+                                           // Equal endpoints but open on at least one side
+                                           (!less_endpoints(upper, upper_inf_sign, other.lower,
+                                                            other.lower_inf_sign) &&
+                                            !less_endpoints(other.lower, other.lower_inf_sign,
+                                                            upper, upper_inf_sign) &&
+                                            !(upper_closed && other.lower_closed));
+
+            // If other.upper < this.lower -> no intersection
+            const bool other_before_this = less_endpoints(other.upper, other.upper_inf_sign, lower,
+                                                          lower_inf_sign) ||
+                                           (!less_endpoints(other.upper, other.upper_inf_sign,
+                                                            lower, lower_inf_sign) &&
+                                            !less_endpoints(lower, lower_inf_sign, other.upper,
+                                                            other.upper_inf_sign) &&
+                                            !(other.upper_closed && lower_closed));
+
+            return !(this_before_other || other_before_this);
+        }
+
         // [lo, hi]
         static interval closed(const T &lo, const T &hi) {
             if (invalid_order(lo, 0, hi, 0))
