@@ -125,6 +125,18 @@ namespace cadmia::modeling {
         constexpr interval(const T &lo, const T &hi, bool lc, bool uc) noexcept
             : lower(lo), upper(hi), lower_closed(lc), upper_closed(uc) {}
 
+      public:
+        // Public endpoint comparison: returns true if (a, a_inf) < (b, b_inf).
+        static constexpr bool endpoint_less(const T &a, int a_inf_sign, const T &b,
+                                            int b_inf_sign) noexcept {
+            return less_endpoints(a, a_inf_sign, b, b_inf_sign);
+        }
+        static constexpr bool endpoint_equal(const T &a, int a_inf_sign, const T &b,
+                                             int b_inf_sign) noexcept {
+            return !less_endpoints(a, a_inf_sign, b, b_inf_sign) &&
+                   !less_endpoints(b, b_inf_sign, a, a_inf_sign);
+        }
+
       private:
         static constexpr bool less_endpoints(const T &a, int a_inf_sign, const T &b,
                                              int b_inf_sign) noexcept {
@@ -233,8 +245,7 @@ namespace cadmia::modeling {
 
             // Helper to check endpoint equality considering infinities
             auto endpoints_equal = [](const T &a, int a_inf, const T &b, int b_inf) constexpr {
-                return !less_endpoints(a, a_inf, b, b_inf) &&
-                       !less_endpoints(b, b_inf, a, a_inf);
+                return !less_endpoints(a, a_inf, b, b_inf) && !less_endpoints(b, b_inf, a, a_inf);
             };
 
             // Lower bound: require other.lower <= this.lower
@@ -242,8 +253,7 @@ namespace cadmia::modeling {
             if (less_endpoints(other.lower, other.lower_inf_sign, lower, lower_inf_sign)) {
                 // other.lower < this.lower
                 lower_ok = true;
-            } else if (endpoints_equal(other.lower, other.lower_inf_sign, lower,
-                                       lower_inf_sign)) {
+            } else if (endpoints_equal(other.lower, other.lower_inf_sign, lower, lower_inf_sign)) {
                 // Equal lower endpoints: if this includes the endpoint, other must also include it
                 lower_ok = !(lower_closed && !other.lower_closed);
             } else {
@@ -259,8 +269,7 @@ namespace cadmia::modeling {
             if (less_endpoints(upper, upper_inf_sign, other.upper, other.upper_inf_sign)) {
                 // this.upper < other.upper
                 upper_ok = true;
-            } else if (endpoints_equal(upper, upper_inf_sign, other.upper,
-                                       other.upper_inf_sign)) {
+            } else if (endpoints_equal(upper, upper_inf_sign, other.upper, other.upper_inf_sign)) {
                 // Equal upper endpoints: if this includes the endpoint, other must also include it
                 upper_ok = !(upper_closed && !other.upper_closed);
             } else {
@@ -277,23 +286,19 @@ namespace cadmia::modeling {
                 return false;
 
             // If this.upper < other.lower -> no intersection
-            const bool this_before_other = less_endpoints(upper, upper_inf_sign, other.lower,
-                                                          other.lower_inf_sign) ||
-                                           // Equal endpoints but open on at least one side
-                                           (!less_endpoints(upper, upper_inf_sign, other.lower,
-                                                            other.lower_inf_sign) &&
-                                            !less_endpoints(other.lower, other.lower_inf_sign,
-                                                            upper, upper_inf_sign) &&
-                                            !(upper_closed && other.lower_closed));
+            const bool this_before_other =
+                less_endpoints(upper, upper_inf_sign, other.lower, other.lower_inf_sign) ||
+                // Equal endpoints but open on at least one side
+                (!less_endpoints(upper, upper_inf_sign, other.lower, other.lower_inf_sign) &&
+                 !less_endpoints(other.lower, other.lower_inf_sign, upper, upper_inf_sign) &&
+                 !(upper_closed && other.lower_closed));
 
             // If other.upper < this.lower -> no intersection
-            const bool other_before_this = less_endpoints(other.upper, other.upper_inf_sign, lower,
-                                                          lower_inf_sign) ||
-                                           (!less_endpoints(other.upper, other.upper_inf_sign,
-                                                            lower, lower_inf_sign) &&
-                                            !less_endpoints(lower, lower_inf_sign, other.upper,
-                                                            other.upper_inf_sign) &&
-                                            !(other.upper_closed && lower_closed));
+            const bool other_before_this =
+                less_endpoints(other.upper, other.upper_inf_sign, lower, lower_inf_sign) ||
+                (!less_endpoints(other.upper, other.upper_inf_sign, lower, lower_inf_sign) &&
+                 !less_endpoints(lower, lower_inf_sign, other.upper, other.upper_inf_sign) &&
+                 !(other.upper_closed && lower_closed));
 
             return !(this_before_other || other_before_this);
         }
@@ -382,6 +387,64 @@ namespace cadmia::modeling {
         }
         [[nodiscard]] constexpr bool is_upper_infinite() const noexcept {
             return upper_inf_sign != 0;
+        }
+
+        // True if this interval is a single point [v, v] (finite, both closed).
+        [[nodiscard]] constexpr bool is_punctual() const noexcept {
+            return lower_closed && upper_closed && lower_inf_sign == 0 && upper_inf_sign == 0 &&
+                   lower == upper;
+        }
+
+        // Returns the intersection of this interval with other.
+        // Returns empty_interval() if the two intervals do not intersect.
+        [[nodiscard]] constexpr interval intersection(const interval &other) const noexcept {
+            if (!intersects(other))
+                return interval::empty_interval();
+
+            // Lower = max(this.lower, other.lower)
+            T lo{};
+            int lo_inf{0};
+            bool lo_closed{};
+            if (less_endpoints(lower, lower_inf_sign, other.lower, other.lower_inf_sign)) {
+                lo        = other.lower;
+                lo_inf    = other.lower_inf_sign;
+                lo_closed = other.lower_closed;
+            } else if (less_endpoints(other.lower, other.lower_inf_sign, lower, lower_inf_sign)) {
+                lo        = lower;
+                lo_inf    = lower_inf_sign;
+                lo_closed = lower_closed;
+            } else {
+                lo        = lower;
+                lo_inf    = lower_inf_sign;
+                lo_closed = lower_closed && other.lower_closed; // more restrictive
+            }
+
+            // Upper = min(this.upper, other.upper)
+            T hi{};
+            int hi_inf{0};
+            bool hi_closed{};
+            if (less_endpoints(upper, upper_inf_sign, other.upper, other.upper_inf_sign)) {
+                hi        = upper;
+                hi_inf    = upper_inf_sign;
+                hi_closed = upper_closed;
+            } else if (less_endpoints(other.upper, other.upper_inf_sign, upper, upper_inf_sign)) {
+                hi        = other.upper;
+                hi_inf    = other.upper_inf_sign;
+                hi_closed = other.upper_closed;
+            } else {
+                hi        = upper;
+                hi_inf    = upper_inf_sign;
+                hi_closed = upper_closed && other.upper_closed; // more restrictive
+            }
+
+            interval r{};
+            r.lower          = lo;
+            r.lower_inf_sign = lo_inf;
+            r.lower_closed   = lo_closed;
+            r.upper          = hi;
+            r.upper_inf_sign = hi_inf;
+            r.upper_closed   = hi_closed;
+            return r;
         }
 
         // Minkowski addition of intervals

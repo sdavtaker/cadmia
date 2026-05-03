@@ -3,10 +3,14 @@
 
 # Explicitly list test sources (no globbing)
 set(TEST_SOURCES
+    engine_coordinator_test.cpp
+    engine_root_coordinator_test.cpp
+    iadevs_accumulator_model_test.cpp
     iadevs_counter_model_test.cpp
     iadevs_generator_model_test.cpp
     iadevs_processor_model_test.cpp
     iadevs_processor_simulator_test.cpp
+    modeling_coupled_test.cpp
     modeling_decimal_test.cpp
     modeling_interval_test.cpp
 )

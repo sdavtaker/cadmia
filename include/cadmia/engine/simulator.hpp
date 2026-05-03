@@ -28,9 +28,12 @@
 #pragma once
 
 #include <cadmia/concepts/iadevs_atomic_model.hpp>
+#include <cadmia/engine/engine.hpp>
 #include <cadmia/modeling/interval.hpp>
 
+#include <any>
 #include <concepts>
+#include <memory>
 #include <optional>
 #include <stdexcept>
 
@@ -52,7 +55,8 @@ namespace cadmia::engine {
      * Private helper:
      * - bound_ts: Apply time-bound functions to computed intervals (placeholder for now)
      */
-    template <cadmia::IADEVSAtomicModel M> class simulator {
+    template <cadmia::IADEVSAtomicModel M>
+    class simulator : public IADEVSEngine<typename M::time_t> {
       public:
         using model_t    = M;
         using state_t    = typename M::state_t;
@@ -82,7 +86,7 @@ namespace cadmia::engine {
          * - t_next = t_last + TA(state)
          */
         constexpr void init(const state_i_t &q_state, const time_i_t &q_time,
-                           const time_i_t &t) noexcept {
+                            const time_i_t &t) noexcept {
             state_  = q_state;
             t_last_ = t - q_time;
             t_next_ = t_last_ + M::time_advance(state_);
@@ -100,7 +104,7 @@ namespace cadmia::engine {
          */
         [[nodiscard]] constexpr std::optional<output_i_t> star(const time_i_t &t) {
             // Validate t ⊆ t_next (Algorithm 1 invariant check)
-                if (!t.is_subset_of(t_next_)) {
+            if (!t.is_subset_of(t_next_)) {
                 throw std::logic_error("star: time t is not a subset of t_next");
             }
 
@@ -119,15 +123,11 @@ namespace cadmia::engine {
         }
 
         /**
-         * x-function: Process external event.
+         * x-function: Process external event (Algorithm 1).
          *
-         * According to Algorithm 1:
-         * - Compute local elapsed time interval t_local from t, t_last, t_next
-         * - Handle overlap with t_last (confluent case: t_local.lower = 0)
-         * - Update state: state = Δ_ext(⟨state, t_local⟩, x)
-         * - Update times: t_last = t, t_next = t_last + TA(state)
-         *
-         * TODO: Implement t_local computation, external transition, and time update.
+         * Computes local elapsed time t_local from t, t_last, t_next.
+         * Confluent case (t intersects t_last): clamps t_local lower bound to 0.
+         * Applies Δ_ext(⟨state, t_local⟩, x), then updates t_last and t_next.
          */
         constexpr void x(const input_i_t &x, const time_i_t &t) noexcept {
             // Compute local elapsed time interval t_local per Algorithm 1
@@ -141,8 +141,8 @@ namespace cadmia::engine {
                 t_local.upper_inf_sign = -1;
             } else {
                 // Both finite
-                t_local.upper            = t.upper - t_next_.lower;
-                t_local.upper_inf_sign   = 0;
+                t_local.upper          = t.upper - t_next_.lower;
+                t_local.upper_inf_sign = 0;
             }
             t_local.upper_closed = t.upper_closed && !t_next_.lower_closed;
 
@@ -173,10 +173,47 @@ namespace cadmia::engine {
             t_next_ = t_last_ + M::time_advance(state_);
         }
 
-        // Accessors
-        [[nodiscard]] constexpr const state_i_t &state() const noexcept { return state_; }
-        [[nodiscard]] constexpr const time_i_t &t_last() const noexcept { return t_last_; }
-        [[nodiscard]] constexpr const time_i_t &t_next() const noexcept { return t_next_; }
+        // Typed accessors
+        [[nodiscard]] constexpr const state_i_t &state() const noexcept {
+            return state_;
+        }
+        [[nodiscard]] time_i_t t_last() const noexcept override {
+            return t_last_;
+        }
+        [[nodiscard]] time_i_t t_next() const noexcept override {
+            return t_next_;
+        }
+
+        // IADEVSEngine<time_t> virtual interface — type-erased for coordinator use
+
+        void advance_t_next_past_limit(const time_i_t &limit) override {
+            if (t_next_.is_empty() || !t_next_.intersects(limit))
+                return;
+            if (limit.is_punctual() &&
+                time_i_t::endpoint_equal(t_next_.lower, t_next_.lower_inf_sign, limit.lower,
+                                         limit.lower_inf_sign)) {
+                t_next_.lower_closed = false;
+            } else if (!limit.is_punctual()) {
+                t_next_.lower          = limit.upper;
+                t_next_.lower_inf_sign = limit.upper_inf_sign;
+                t_next_.lower_closed   = !limit.upper_closed;
+            }
+        }
+
+        [[nodiscard]] std::optional<std::any> engine_star(const time_i_t &t) override {
+            auto result = star(t);
+            if (!result.has_value())
+                return std::nullopt;
+            return std::any{std::move(*result)};
+        }
+
+        void engine_x(std::any x_val, const time_i_t &t) override {
+            x(std::any_cast<input_i_t>(x_val), t);
+        }
+
+        [[nodiscard]] std::unique_ptr<IADEVSEngine<typename M::time_t>> clone() const override {
+            return std::make_unique<simulator<M>>(*this);
+        }
 
       private:
         /**
