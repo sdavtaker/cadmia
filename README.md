@@ -13,7 +13,7 @@ implemented and validated.
 
 ## Top features (planned)
 * IA‑DEVS semantics with strong compile‑time validation of models.
-* Typed messages over typed ports, with clear coupling composition.
+* Value-based coupling: components communicate via typed message values; no port system (UA-DEVS/IA-DEVS do not define ports).
 * Time representation decoupled from model logic.
 * Header‑only delivery for easy consumption.
 * C++23 standard library features and guidelines (no extra deps unless necessary).
