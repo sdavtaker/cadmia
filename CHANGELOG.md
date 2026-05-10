@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `LogEntry<T>::raw_output` (`std::optional<std::any>`) — typed output value preserved
+  alongside the existing string field so callers can `any_cast` the component output.
+
+### Changed
+- `interval<T>::operator+` and `operator-` apply directed rounding for
+  `std::floating_point<T>`: lower bound computed with `FE_DOWNWARD`, upper bound with
+  `FE_UPWARD`, restoring `FE_TONEAREST` after each operation.  Non-floating-point types
+  (decimal, integer) use the unchanged constexpr path.  Translation units that use
+  `interval<float>` or `interval<double>` arithmetic must be compiled with
+  `-frounding-math -fno-unsafe-math-optimizations` for the rounding to be respected.
+
 ## [0.3.0] - 2026-05-02
 
 First release with full coupled model simulation support: coordinator, root

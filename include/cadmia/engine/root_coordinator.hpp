@@ -30,6 +30,7 @@
 #include <cadmia/engine/coordinator.hpp>
 #include <cadmia/modeling/coupled.hpp>
 
+#include <any>
 #include <deque>
 #include <memory>
 #include <optional>
@@ -55,9 +56,10 @@ namespace cadmia::engine {
         std::string branch;
         std::string kind; // "atomic" | "coupled" | "skip"
         std::optional<std::string> parent_branch;
-        std::string time;                  // str(limit interval)
-        std::string component;             // engine_name, empty for skip
-        std::optional<std::string> output; // str(component_output), nullopt for skip/passive
+        std::string time;                   // str(limit interval)
+        std::string component;              // engine_name, empty for skip
+        std::optional<std::string> output;  // str(component_output), nullopt for skip/passive
+        std::optional<std::any> raw_output; // typed output value for caller inspection
     };
 
     /**
@@ -222,6 +224,7 @@ namespace cadmia::engine {
                 .time          = interval_str(action.limit),
                 .component     = action.engine_name,
                 .output        = comp_out ? std::optional<std::string>{"<output>"} : std::nullopt,
+                .raw_output    = comp_out,
             };
         }
     };

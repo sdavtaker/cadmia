@@ -29,6 +29,7 @@
 
 #include <cadmia/modeling/decimal.hpp>
 
+#include <cfenv>
 #include <concepts>
 #include <limits>
 #include <stdexcept>
@@ -447,16 +448,30 @@ namespace cadmia::modeling {
             return r;
         }
 
-        // Minkowski addition of intervals
-        friend constexpr interval operator+(const interval &a, const interval &b) {
+        // Minkowski addition of intervals.
+        // For floating-point T: lower bound rounds toward -inf, upper toward +inf,
+        // maintaining the outward-rounding invariant required by IA-DEVS.
+        // Requires the translation unit to be compiled with -frounding-math
+        // -fno-unsafe-math-optimizations so that fesetround is respected.
+        friend interval operator+(const interval &a, const interval &b) {
             if (a.is_empty() || b.is_empty()) {
                 return interval::empty_interval();
             }
             interval r{};
-            add_endpoint(a.lower, a.lower_inf_sign, b.lower, b.lower_inf_sign, r.lower,
-                         r.lower_inf_sign);
-            add_endpoint(a.upper, a.upper_inf_sign, b.upper, b.upper_inf_sign, r.upper,
-                         r.upper_inf_sign);
+            if constexpr (std::floating_point<T>) {
+                std::fesetround(FE_DOWNWARD);
+                add_endpoint(a.lower, a.lower_inf_sign, b.lower, b.lower_inf_sign, r.lower,
+                             r.lower_inf_sign);
+                std::fesetround(FE_UPWARD);
+                add_endpoint(a.upper, a.upper_inf_sign, b.upper, b.upper_inf_sign, r.upper,
+                             r.upper_inf_sign);
+                std::fesetround(FE_TONEAREST);
+            } else {
+                add_endpoint(a.lower, a.lower_inf_sign, b.lower, b.lower_inf_sign, r.lower,
+                             r.lower_inf_sign);
+                add_endpoint(a.upper, a.upper_inf_sign, b.upper, b.upper_inf_sign, r.upper,
+                             r.upper_inf_sign);
+            }
             if (invalid_order(r.lower, r.lower_inf_sign, r.upper, r.upper_inf_sign)) {
                 return interval::empty_interval();
             }
@@ -465,16 +480,27 @@ namespace cadmia::modeling {
             return r;
         }
 
-        // Interval subtraction: {l - e | l ∈ L, e ∈ E}
-        friend constexpr interval operator-(const interval &l, const interval &e) {
+        // Interval subtraction: {l - e | l ∈ L, e ∈ E}.
+        // For floating-point T: directed rounding maintains the outward-rounding invariant.
+        friend interval operator-(const interval &l, const interval &e) {
             if (l.is_empty() || e.is_empty()) {
                 return interval::empty_interval();
             }
             interval r{};
-            sub_endpoint(l.lower, l.lower_inf_sign, e.upper, e.upper_inf_sign, r.lower,
-                         r.lower_inf_sign);
-            sub_endpoint(l.upper, l.upper_inf_sign, e.lower, e.lower_inf_sign, r.upper,
-                         r.upper_inf_sign);
+            if constexpr (std::floating_point<T>) {
+                std::fesetround(FE_DOWNWARD);
+                sub_endpoint(l.lower, l.lower_inf_sign, e.upper, e.upper_inf_sign, r.lower,
+                             r.lower_inf_sign);
+                std::fesetround(FE_UPWARD);
+                sub_endpoint(l.upper, l.upper_inf_sign, e.lower, e.lower_inf_sign, r.upper,
+                             r.upper_inf_sign);
+                std::fesetround(FE_TONEAREST);
+            } else {
+                sub_endpoint(l.lower, l.lower_inf_sign, e.upper, e.upper_inf_sign, r.lower,
+                             r.lower_inf_sign);
+                sub_endpoint(l.upper, l.upper_inf_sign, e.lower, e.lower_inf_sign, r.upper,
+                             r.upper_inf_sign);
+            }
             if (invalid_order(r.lower, r.lower_inf_sign, r.upper, r.upper_inf_sign)) {
                 return interval::empty_interval();
             }
