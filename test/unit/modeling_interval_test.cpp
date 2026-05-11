@@ -25,190 +25,212 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <cadmia/modeling/decimal.hpp>
+#include <cadmia/modeling/interval.hpp>
+
 #include <catch2/catch_test_macros.hpp>
 #include <stdexcept>
-
-#include <cadmia/modeling/interval.hpp>
-#include <cadmia/modeling/decimal.hpp>
 
 using cadmia::modeling::decimal;
 
 TEST_CASE("interval closed constructor and flags", "[interval]") {
-  const auto iv = cadmia::modeling::interval<int>::closed(1, 3);
-  REQUIRE(iv.lower == 1);
-  REQUIRE(iv.upper == 3);
-  REQUIRE(iv.lower_closed);
-  REQUIRE(iv.upper_closed);
-  REQUIRE_FALSE(iv.is_empty());
+    const auto iv = cadmia::modeling::interval<int>::closed(1, 3);
+    REQUIRE(iv.lower == 1);
+    REQUIRE(iv.upper == 3);
+    REQUIRE(iv.lower_closed);
+    REQUIRE(iv.upper_closed);
+    REQUIRE_FALSE(iv.is_empty());
 }
 
 TEST_CASE("interval right_open and left_open closures", "[interval]") {
-  const auto r = cadmia::modeling::interval<int>::right_open(1, 3); // [1,3)
-  REQUIRE(r.lower == 1);
-  REQUIRE(r.upper == 3);
-  REQUIRE(r.lower_closed);
-  REQUIRE_FALSE(r.upper_closed);
+    const auto r = cadmia::modeling::interval<int>::right_open(1, 3); // [1,3)
+    REQUIRE(r.lower == 1);
+    REQUIRE(r.upper == 3);
+    REQUIRE(r.lower_closed);
+    REQUIRE_FALSE(r.upper_closed);
 
-  const auto l = cadmia::modeling::interval<int>::left_open(1, 3); // (1,3]
-  REQUIRE(l.lower == 1);
-  REQUIRE(l.upper == 3);
-  REQUIRE_FALSE(l.lower_closed);
-  REQUIRE(l.upper_closed);
+    const auto l = cadmia::modeling::interval<int>::left_open(1, 3); // (1,3]
+    REQUIRE(l.lower == 1);
+    REQUIRE(l.upper == 3);
+    REQUIRE_FALSE(l.lower_closed);
+    REQUIRE(l.upper_closed);
 }
 
 TEST_CASE("Open interval (v,v) is empty", "[interval]") {
-  const auto e1 = cadmia::modeling::interval<int>::open(0, 0);
-  REQUIRE(e1.is_empty());
+    const auto e1 = cadmia::modeling::interval<int>::open(0, 0);
+    REQUIRE(e1.is_empty());
 
-  const auto e2 = cadmia::modeling::interval<double>::open(1.0, 1.0);
-  REQUIRE(e2.is_empty());
+    const auto e2 = cadmia::modeling::interval<double>::open(1.0, 1.0);
+    REQUIRE(e2.is_empty());
+}
+
+TEST_CASE("Half-open interval (v,v] and [v,v) are empty", "[interval]") {
+    // (a, a] is mathematically empty — advance_t_next_past_limit produces this form
+    const auto lo = cadmia::modeling::interval<int>::left_open(0, 0);
+    REQUIRE(lo.is_empty());
+
+    const auto lo2 = cadmia::modeling::interval<double>::left_open(1.0, 1.0);
+    REQUIRE(lo2.is_empty());
+
+    // [a, a) is also empty
+    const auto ro = cadmia::modeling::interval<int>::right_open(0, 0);
+    REQUIRE(ro.is_empty());
+
+    const auto ro2 = cadmia::modeling::interval<double>::right_open(2.5, 2.5);
+    REQUIRE(ro2.is_empty());
+
+    // [a, a] is NOT empty
+    const auto pt = cadmia::modeling::interval<int>::closed(3, 3);
+    REQUIRE_FALSE(pt.is_empty());
 }
 
 TEST_CASE("interval throws when hi < lo", "[interval]") {
-  REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::closed(5, 4)), std::invalid_argument);
-  REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::right_open(5, 4)), std::invalid_argument);
-  REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::left_open(5, 4)), std::invalid_argument);
-  REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::open(5, 4)), std::invalid_argument);
+    REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::closed(5, 4)), std::invalid_argument);
+    REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::right_open(5, 4)), std::invalid_argument);
+    REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::left_open(5, 4)), std::invalid_argument);
+    REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::open(5, 4)), std::invalid_argument);
 }
 
 TEST_CASE("interval works with decimal type", "[interval][decimal]") {
-  using d3 = decimal<3>;
-  const auto a = d3::from_whole(1);     // 1.000
-  const auto b = d3::from_scaled(2500); // 2.500
-  const auto iv = cadmia::modeling::interval<d3>::closed(a, b);
-  REQUIRE_FALSE(iv.is_empty());
-  REQUIRE(iv.lower == a);
-  REQUIRE(iv.upper == b);
+    using d3      = decimal<3>;
+    const auto a  = d3::from_whole(1);     // 1.000
+    const auto b  = d3::from_scaled(2500); // 2.500
+    const auto iv = cadmia::modeling::interval<d3>::closed(a, b);
+    REQUIRE_FALSE(iv.is_empty());
+    REQUIRE(iv.lower == a);
+    REQUIRE(iv.upper == b);
 }
 
 TEST_CASE("interval supports open infinities on either side", "[interval][infinite]") {
-  using cadmia::modeling::minus_inf;
-  using cadmia::modeling::plus_inf;
+    using cadmia::modeling::minus_inf;
+    using cadmia::modeling::plus_inf;
 
-  // (-inf, 10)
-  {
-    const auto i = cadmia::modeling::interval<int>::open(minus_inf, 10);
-    REQUIRE(i.is_lower_infinite());
-    REQUIRE_FALSE(i.is_upper_infinite());
-    REQUIRE_FALSE(i.lower_closed);
-    REQUIRE_FALSE(i.upper_closed);
-  }
+    // (-inf, 10)
+    {
+        const auto i = cadmia::modeling::interval<int>::open(minus_inf, 10);
+        REQUIRE(i.is_lower_infinite());
+        REQUIRE_FALSE(i.is_upper_infinite());
+        REQUIRE_FALSE(i.lower_closed);
+        REQUIRE_FALSE(i.upper_closed);
+    }
 
-  // (10, +inf)
-  {
-    const auto i = cadmia::modeling::interval<int>::open(10, plus_inf);
-    REQUIRE_FALSE(i.is_lower_infinite());
-    REQUIRE(i.is_upper_infinite());
-    REQUIRE_FALSE(i.lower_closed);
-    REQUIRE_FALSE(i.upper_closed);
-  }
+    // (10, +inf)
+    {
+        const auto i = cadmia::modeling::interval<int>::open(10, plus_inf);
+        REQUIRE_FALSE(i.is_lower_infinite());
+        REQUIRE(i.is_upper_infinite());
+        REQUIRE_FALSE(i.lower_closed);
+        REQUIRE_FALSE(i.upper_closed);
+    }
 
-  // (-inf, +inf)
-  {
-    const auto i = cadmia::modeling::interval<int>::open(minus_inf, plus_inf);
-    REQUIRE(i.is_lower_infinite());
-    REQUIRE(i.is_upper_infinite());
-    REQUIRE_FALSE(i.lower_closed);
-    REQUIRE_FALSE(i.upper_closed);
-    REQUIRE_FALSE(i.is_empty());
-  }
+    // (-inf, +inf)
+    {
+        const auto i = cadmia::modeling::interval<int>::open(minus_inf, plus_inf);
+        REQUIRE(i.is_lower_infinite());
+        REQUIRE(i.is_upper_infinite());
+        REQUIRE_FALSE(i.lower_closed);
+        REQUIRE_FALSE(i.upper_closed);
+        REQUIRE_FALSE(i.is_empty());
+    }
 }
 
 TEST_CASE("interval supports left_open with -inf on left and right_open with +inf on right",
           "[interval][infinite][closures]") {
-  using cadmia::modeling::minus_inf;
-  using cadmia::modeling::plus_inf;
+    using cadmia::modeling::minus_inf;
+    using cadmia::modeling::plus_inf;
 
-  // (-inf, 5]
-  {
-    const auto i = cadmia::modeling::interval<int>::left_open(minus_inf, 5);
-    REQUIRE(i.is_lower_infinite());
-    REQUIRE_FALSE(i.is_upper_infinite());
-    REQUIRE_FALSE(i.lower_closed); // left_open
-    REQUIRE(i.upper_closed);
-    REQUIRE_FALSE(i.is_empty());
-  }
+    // (-inf, 5]
+    {
+        const auto i = cadmia::modeling::interval<int>::left_open(minus_inf, 5);
+        REQUIRE(i.is_lower_infinite());
+        REQUIRE_FALSE(i.is_upper_infinite());
+        REQUIRE_FALSE(i.lower_closed); // left_open
+        REQUIRE(i.upper_closed);
+        REQUIRE_FALSE(i.is_empty());
+    }
 
-  // [5, +inf)
-  {
-    const auto i = cadmia::modeling::interval<int>::right_open(5, plus_inf);
-    REQUIRE_FALSE(i.is_lower_infinite());
-    REQUIRE(i.is_upper_infinite());
-    REQUIRE(i.lower_closed);
-    REQUIRE_FALSE(i.upper_closed); // right_open
-    REQUIRE_FALSE(i.is_empty());
-  }
+    // [5, +inf)
+    {
+        const auto i = cadmia::modeling::interval<int>::right_open(5, plus_inf);
+        REQUIRE_FALSE(i.is_lower_infinite());
+        REQUIRE(i.is_upper_infinite());
+        REQUIRE(i.lower_closed);
+        REQUIRE_FALSE(i.upper_closed); // right_open
+        REQUIRE_FALSE(i.is_empty());
+    }
 }
 
-TEST_CASE("interval infinite order validation throws when reversed", "[interval][infinite][order]") {
-  using cadmia::modeling::minus_inf;
-  using cadmia::modeling::plus_inf;
+TEST_CASE("interval infinite order validation throws when reversed",
+          "[interval][infinite][order]") {
+    using cadmia::modeling::minus_inf;
+    using cadmia::modeling::plus_inf;
 
-  // (10, -inf) is invalid
-  REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::open(10, minus_inf)), std::invalid_argument);
-  // (+inf, 10) is invalid
-  REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::open(plus_inf, 10)), std::invalid_argument);
+    // (10, -inf) is invalid
+    REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::open(10, minus_inf)),
+                      std::invalid_argument);
+    // (+inf, 10) is invalid
+    REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::open(plus_inf, 10)), std::invalid_argument);
 }
 
 TEST_CASE("interval operator+ (finite ends)", "[interval][ops]") {
-  using I = cadmia::modeling::interval<int>;
-  const auto a = I::closed(1, 2);      // [1,2]
-  const auto b = I::left_open(3, 5);   // (3,5]
-  const auto s = a + b;                // expect (1+3, 2+5] = (4,7]
-  REQUIRE(s.lower == 4);
-  REQUIRE(s.upper == 7);
-  REQUIRE_FALSE(s.lower_closed);
-  REQUIRE(s.upper_closed);
-  REQUIRE_FALSE(s.is_empty());
+    using I      = cadmia::modeling::interval<int>;
+    const auto a = I::closed(1, 2);    // [1,2]
+    const auto b = I::left_open(3, 5); // (3,5]
+    const auto s = a + b;              // expect (1+3, 2+5] = (4,7]
+    REQUIRE(s.lower == 4);
+    REQUIRE(s.upper == 7);
+    REQUIRE_FALSE(s.lower_closed);
+    REQUIRE(s.upper_closed);
+    REQUIRE_FALSE(s.is_empty());
 }
 
 TEST_CASE("interval operator- (finite ends)", "[interval][ops]") {
-  using I = cadmia::modeling::interval<int>;
-  const auto l = I::closed(5, 8);      // [5,8]
-  const auto e = I::right_open(2, 3);  // [2,3)
-  const auto d = l - e;                // [5-3, 8-2] with closures: (2,6]
-  REQUIRE(d.lower == 2);
-  REQUIRE(d.upper == 6);
-  REQUIRE_FALSE(d.lower_closed);
-  REQUIRE(d.upper_closed);
-  REQUIRE_FALSE(d.is_empty());
+    using I      = cadmia::modeling::interval<int>;
+    const auto l = I::closed(5, 8);     // [5,8]
+    const auto e = I::right_open(2, 3); // [2,3)
+    const auto d = l - e;               // [5-3, 8-2] with closures: (2,6]
+    REQUIRE(d.lower == 2);
+    REQUIRE(d.upper == 6);
+    REQUIRE_FALSE(d.lower_closed);
+    REQUIRE(d.upper_closed);
+    REQUIRE_FALSE(d.is_empty());
 }
 
 TEST_CASE("interval operator+ with infinities", "[interval][ops][infinite]") {
-  using cadmia::modeling::minus_inf;
-  using cadmia::modeling::plus_inf;
-  using I = cadmia::modeling::interval<int>;
+    using cadmia::modeling::minus_inf;
+    using cadmia::modeling::plus_inf;
+    using I = cadmia::modeling::interval<int>;
 
-  // (-inf,10) + [2,3] = (-inf,13)
-  const auto a = I::open(minus_inf, 10);
-  const auto b = I::closed(2, 3);
-  const auto s = a + b;
-  REQUIRE(s.is_lower_infinite());
-  REQUIRE_FALSE(s.is_upper_infinite());
-  REQUIRE(s.upper == 13);
-  REQUIRE_FALSE(s.lower_closed);
-  REQUIRE_FALSE(s.upper_closed);
+    // (-inf,10) + [2,3] = (-inf,13)
+    const auto a = I::open(minus_inf, 10);
+    const auto b = I::closed(2, 3);
+    const auto s = a + b;
+    REQUIRE(s.is_lower_infinite());
+    REQUIRE_FALSE(s.is_upper_infinite());
+    REQUIRE(s.upper == 13);
+    REQUIRE_FALSE(s.lower_closed);
+    REQUIRE_FALSE(s.upper_closed);
 }
 
 TEST_CASE("interval operator- with infinities", "[interval][ops][infinite]") {
-  using cadmia::modeling::minus_inf;
-  using I = cadmia::modeling::interval<int>;
+    using cadmia::modeling::minus_inf;
+    using I = cadmia::modeling::interval<int>;
 
-  // [5,10) - (-inf,3] = [2, +inf)
-  const auto l = I::right_open(5, 10);
-  const auto e = I::left_open(minus_inf, 3);
-  const auto d = l - e;
-  REQUIRE_FALSE(d.is_lower_infinite());
-  REQUIRE(d.lower == 2);
-  REQUIRE(d.is_upper_infinite());
-  REQUIRE(d.lower_closed);   // true && true
-  REQUIRE_FALSE(d.upper_closed); // false && false
+    // [5,10) - (-inf,3] = [2, +inf)
+    const auto l = I::right_open(5, 10);
+    const auto e = I::left_open(minus_inf, 3);
+    const auto d = l - e;
+    REQUIRE_FALSE(d.is_lower_infinite());
+    REQUIRE(d.lower == 2);
+    REQUIRE(d.is_upper_infinite());
+    REQUIRE(d.lower_closed);       // true && true
+    REQUIRE_FALSE(d.upper_closed); // false && false
 }
 
 TEST_CASE("interval operator with empty intervals stays empty", "[interval][ops][empty]") {
-  using I = cadmia::modeling::interval<int>;
-  const auto empty = I::open(0, 0);
-  const auto one   = I::closed(1, 1);
-  REQUIRE((empty + one).is_empty());
-  REQUIRE((one - empty).is_empty());
+    using I          = cadmia::modeling::interval<int>;
+    const auto empty = I::open(0, 0);
+    const auto one   = I::closed(1, 1);
+    REQUIRE((empty + one).is_empty());
+    REQUIRE((one - empty).is_empty());
 }

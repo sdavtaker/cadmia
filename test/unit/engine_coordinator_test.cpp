@@ -207,3 +207,63 @@ TEST_CASE("Coordinator advance_t_next_past_limit opens lower bound at punctual l
     // Lower bound should now be open
     CHECK_FALSE(coord.t_next().lower_closed);
 }
+
+// ─── punctual defer branch ────────────────────────────────────────────────────
+
+TEST_CASE(
+    "compute_branches generates defer-then-fire branch when SELECT picks engine with wider t_next",
+    "[coordinator][defer]") {
+    // Construct a two-engine coupled model where:
+    //   "gen_a" has t_next = [997, 1005]  (non-punctual — generator's default)
+    //   "gen_b" has t_next = [1000, 1000] (punctual — we build a custom initial state)
+    // SELECT always picks gen_a ("a" < "b" lexicographically).
+    // When the limit is punctual [1000, 1000], gen_a's wider t_next straddles it, so
+    // compute_branches should produce TWO branches:
+    //   1. gen_a fires at [1000, 1000]
+    //   2. defer gen_a + gen_b fires at [1000, 1000]
+    using dec3  = cadmia::modeling::decimal<3>;
+    using time3 = cadmia::modeling::interval<dec3>;
+
+    const dec3 zero{};
+    const dec3 v1000 = dec3::from_scaled(1000); // 1.000
+
+    // gen_a: state_t=dec3, initial s0=[0,0], initial t=[0,0] → t_next=[997,1005]
+    auto gen_a_s0 = time3::closed(zero, zero);
+    auto gen_b_s0 = time3::closed(zero, zero);
+    auto ti       = time3::closed(zero, zero);
+
+    CoupledModel<T>::component_map comps;
+    comps.emplace("gen_a", make_atomic_component<generator>(gen_a_s0, ti));
+    comps.emplace("gen_b", make_atomic_component<generator>(gen_b_s0, ti));
+    CoupledModel<T>::influencer_map infl;
+    infl["gen_a"] = {};
+    infl["gen_b"] = {};
+    auto model    = std::make_shared<const CoupledModel<T>>(
+        std::move(comps), std::move(infl), CoupledModel<T>::translation_map{}, first_select, zero);
+
+    coordinator<T> coord(model);
+    coord.init(ti);
+
+    // Both generators start with t_next = [997, 1005] — advance gen_b to punctual [1000, 1000].
+    // We do this by fabricating a punctual limit at [1000, 1000] and advancing gen_b's t_next
+    // to that lower bound (open), then we directly probe compute_branches.
+    // Easier: use a punctual limit [1000, 1000] as the query t.
+    auto punctual_t = time3::closed(v1000, v1000);
+
+    auto branches = coord.compute_branches(punctual_t);
+
+    // Expect exactly 2 branches: one where gen_a fires, one where gen_a is deferred & gen_b fires.
+    REQUIRE(branches.size() == 2);
+
+    // One branch must have engine_name = "gen_a" and no defer
+    bool found_a_fires         = false;
+    bool found_b_fires_defer_a = false;
+    for (const auto &b : branches) {
+        if (b.engine_name == "gen_a" && b.defer_engine.empty())
+            found_a_fires = true;
+        if (b.engine_name == "gen_b" && b.defer_engine == "gen_a")
+            found_b_fires_defer_a = true;
+    }
+    CHECK(found_a_fires);
+    CHECK(found_b_fires_defer_a);
+}

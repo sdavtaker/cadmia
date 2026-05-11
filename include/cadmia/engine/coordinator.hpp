@@ -46,10 +46,15 @@ namespace cadmia::engine {
     /**
      * One possible action for the current simulation step.
      * engine_name == "" means a skip branch (no engine fires in this interval).
+     * defer_engine, when non-empty, names an engine whose t_next must be advanced
+     * past limit before engine_name fires — used when SELECT picks an engine with a
+     * wider t_next than the punctual limit, and we also need to explore the branch
+     * where that engine's actual time falls outside the limit.
      */
     template <typename T> struct BranchAction {
         std::string engine_name;
         cadmia::modeling::interval<T> limit;
+        std::string defer_engine{}; // advance this engine past limit before firing engine_name
     };
 
     /**
@@ -213,9 +218,21 @@ namespace cadmia::engine {
 
                 std::vector<BranchAction<T>> branches;
                 const auto &chosen_tn = engines_.at(chosen)->t_next();
-                if (!endpoint_eq(limit, chosen_tn))
-                    branches.push_back({.engine_name = "", .limit = limit}); // fork skip
                 branches.push_back({.engine_name = chosen, .limit = limit});
+                if (!endpoint_eq(limit, chosen_tn)) {
+                    // chosen's t_next is wider than the punctual limit: explore the
+                    // scenario where chosen's actual time falls outside this limit.
+                    // Defer chosen past the limit and fire the next-selected engine.
+                    auto remaining = candidates;
+                    remaining.erase(chosen);
+                    if (!remaining.empty()) {
+                        const std::string next_chosen = model_->select()(remaining);
+                        branches.push_back(
+                            {.engine_name = next_chosen, .limit = limit, .defer_engine = chosen});
+                    } else {
+                        branches.push_back({.engine_name = "", .limit = limit}); // plain skip
+                    }
+                }
                 return branches;
             }
 
@@ -241,9 +258,19 @@ namespace cadmia::engine {
          * Returns {component_output, eoc_output}.
          * component_output: raw output of the firing engine (for logging).
          * eoc_output: EOC-translated output to parent, or nullopt.
+         *
+         * If action.defer_engine is set, that engine's t_next is advanced past
+         * action.limit before action.engine_name fires, representing the scenario
+         * where the deferred engine's actual time falls outside this limit.
          */
         std::pair<std::optional<std::any>, std::optional<std::any>>
         execute_branch(const BranchAction<T> &action) {
+            if (!action.defer_engine.empty()) {
+                engines_.at(action.defer_engine)->advance_t_next_past_limit(action.limit);
+                auto result = route(action.engine_name, action.limit);
+                bound_ts();
+                return result;
+            }
             if (action.engine_name.empty()) {
                 subtract_limit(action.limit);
                 bound_ts();
