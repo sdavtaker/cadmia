@@ -378,9 +378,13 @@ namespace cadmia::modeling {
         }
 
         [[nodiscard]] constexpr bool is_empty() const noexcept {
-            return !lower_closed && !upper_closed &&
-                   !less_endpoints(lower, lower_inf_sign, upper, upper_inf_sign) &&
-                   !less_endpoints(upper, upper_inf_sign, lower, lower_inf_sign);
+            // Empty when lo == hi and at least one bound is open (both-infinite
+            // bounds can never produce a finite empty interval).
+            if (lower_closed && upper_closed)
+                return false;
+            if (lower_inf_sign != 0 || upper_inf_sign != 0)
+                return false;
+            return !less_endpoints(lower, 0, upper, 0) && !less_endpoints(upper, 0, lower, 0);
         }
 
         [[nodiscard]] constexpr bool is_lower_infinite() const noexcept {
