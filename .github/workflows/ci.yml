@@ -14,7 +14,7 @@ env:
 
 jobs:
   check-format:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -38,7 +38,7 @@ jobs:
           printf '%s\0' "${paths[@]}" | xargs -0 -r clang-format -style=file -n --Werror
 
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: check-format
 
     steps:
@@ -58,9 +58,6 @@ jobs:
           VCPKG_FEATURE_FLAGS: manifests
         run: |
           "${{ github.workspace }}/vcpkg/vcpkg" install
-
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -yq libboost-all-dev
 
       - name: Configure CMake
         env:
