@@ -135,8 +135,8 @@ namespace cadmia::engine {
 
                 } else {
                     // Branching — pop original, clone state for each action
-                    if (static_cast<int>(queue.size()) - 1 + static_cast<int>(actions.size()) >
-                        max_branches) {
+                    if (queue.size() - 1 + actions.size() >
+                        static_cast<std::size_t>(max_branches)) {
                         throw SimulationLimitError("Simulation exceeded max_branches limit (" +
                                                    std::to_string(max_branches) + ") after " +
                                                    std::to_string(total_steps) + " steps");
@@ -152,7 +152,11 @@ namespace cadmia::engine {
                         const auto &action = actions[i];
                         // Clone the original (pre-execution) coordinator for each branch
                         auto clone_eng = original.coordinator->clone();
-                        auto *clone    = static_cast<coord_t *>(clone_eng.release());
+                        auto *clone    = dynamic_cast<coord_t *>(clone_eng.get());
+                        if (clone == nullptr)
+                            throw std::logic_error(
+                                "root_coordinator: clone() returned unexpected engine type");
+                        clone_eng.release();
                         auto clone_ptr = std::unique_ptr<coord_t>(clone);
 
                         auto [comp_out, _2] = clone_ptr->execute_branch(action);

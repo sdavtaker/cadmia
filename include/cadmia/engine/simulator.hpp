@@ -85,8 +85,7 @@ namespace cadmia::engine {
          * - t_last = t - q_time
          * - t_next = t_last + TA(state)
          */
-        constexpr void init(const state_i_t &q_state, const time_i_t &q_time,
-                            const time_i_t &t) noexcept {
+        constexpr void init(const state_i_t &q_state, const time_i_t &q_time, const time_i_t &t) {
             state_  = q_state;
             t_last_ = t - q_time;
             t_next_ = t_last_ + M::time_advance(state_);
@@ -129,7 +128,7 @@ namespace cadmia::engine {
          * Confluent case (t intersects t_last): clamps t_local lower bound to 0.
          * Applies Δ_ext(⟨state, t_local⟩, x), then updates t_last and t_next.
          */
-        constexpr void x(const input_i_t &x, const time_i_t &t) noexcept {
+        constexpr void x(const input_i_t &x, const time_i_t &t) {
             // Compute local elapsed time interval t_local per Algorithm 1
             time_i_t t_local{};
 

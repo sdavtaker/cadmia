@@ -146,6 +146,10 @@ namespace cadmia::iadevs {
                 throw std::invalid_argument(
                     "output: empty queue (should not be called when passive)");
             }
+            if (s.lower.qj.empty() || s.upper.qj.empty()) {
+                throw std::logic_error(
+                    "output: queue endpoint is empty despite non-empty state interval");
+            }
             return output_i_t::closed(s.lower.qj.front(), s.upper.qj.front());
         }
 

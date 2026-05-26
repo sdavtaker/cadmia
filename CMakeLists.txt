@@ -67,6 +67,9 @@ target_compile_features(cadmia INTERFACE cxx_std_23)
 target_compile_options(cadmia INTERFACE
     $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -pedantic>
     $<$<AND:$<CXX_COMPILER_ID:GNU,Clang,AppleClang>,$<CONFIG:Debug>>:-g -O0>
+    # Required for correct directed-rounding interval arithmetic (fesetround must not be
+    # folded away by the optimizer) and to keep signed overflow well-defined.
+    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-frounding-math -fno-unsafe-math-optimizations -fno-strict-overflow>
 )
 
 # Profiling instrumentation (if enabled)
