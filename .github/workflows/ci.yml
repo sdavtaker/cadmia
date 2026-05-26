@@ -47,8 +47,11 @@ jobs:
           submodules: true
 
       - name: Setup vcpkg
+        env:
+          VCPKG_COMMIT: 67b207f199b5d2ee09f206d2e9e9171e7c7a3274
         run: |
           git clone https://github.com/microsoft/vcpkg.git "${{ github.workspace }}/vcpkg"
+          git -C "${{ github.workspace }}/vcpkg" checkout $VCPKG_COMMIT
           "${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh"
 
       - name: Preinstall dependencies (manifest mode)
