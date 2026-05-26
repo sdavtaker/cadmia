@@ -215,6 +215,9 @@ namespace cadmia::engine {
                         candidates.insert(name);
                 }
                 const std::string chosen = model_->select()(candidates);
+                if (candidates.find(chosen) == candidates.end())
+                    throw std::logic_error("select function returned '" + chosen +
+                                           "' which is not among the imminent candidates");
 
                 std::vector<BranchAction<T>> branches;
                 const auto &chosen_tn = engines_.at(chosen)->t_next();
