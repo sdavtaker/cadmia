@@ -25,6 +25,13 @@ foreach(test_src IN LISTS TEST_SOURCES)
             Catch2::Catch2WithMain
     )
 
+    # Directed-rounding flags are required for correct interval arithmetic in tests.
+    # These are intentionally NOT on the cadmia INTERFACE target; modelers who use
+    # floating-point intervals must add them to their own targets.
+    target_compile_options(${test_name} PRIVATE
+        $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-frounding-math -fno-unsafe-math-optimizations -fno-strict-overflow>
+    )
+
     # Auto-discover Catch2 TEST_CASEs and register them with CTest when available
     if(COMMAND catch_discover_tests)
         catch_discover_tests(${test_name}

@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: BSD-2-Clause
 # CadmIA - IA-DEVS Simulation Library
 
-# Integrate vcpkg if present
+cmake_minimum_required(VERSION 3.28)
+
+# Toolchain must be set before project() so CMake loads vcpkg during compiler detection.
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         CACHE STRING "Vcpkg toolchain file")
 endif()
-
-cmake_minimum_required(VERSION 3.28)
 
 project(CadmIA
     VERSION 0.3.0
@@ -63,25 +63,14 @@ target_include_directories(cadmia INTERFACE
 
 target_compile_features(cadmia INTERFACE cxx_std_23)
 
-# Compiler warnings and flags (only for targets linking to cadmia)
+# Warnings apply only when building from source tree, not when installed via vcpkg.
 target_compile_options(cadmia INTERFACE
-    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -pedantic>
-    $<$<AND:$<CXX_COMPILER_ID:GNU,Clang,AppleClang>,$<CONFIG:Debug>>:-g -O0>
-    # Required for correct directed-rounding interval arithmetic (fesetround must not be
-    # folded away by the optimizer) and to keep signed overflow well-defined.
-    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-frounding-math -fno-unsafe-math-optimizations -fno-strict-overflow>
+    $<BUILD_INTERFACE:$<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -pedantic>>
 )
+# Note: directed-rounding flags (-frounding-math etc.) are NOT propagated here.
+# Modelers who use floating-point interval arithmetic must add these flags to their own
+# targets. They are applied to cadmia's own test suite in test/unit/CMakeLists.txt.
 
-# Profiling instrumentation (if enabled)
-if(PROFILER_ENABLED)
-    message(STATUS "Profiling instrumentation enabled")
-    target_compile_options(cadmia INTERFACE
-        $<$<CXX_COMPILER_ID:Clang,AppleClang>:-fprofile-instr-generate>
-    )
-    target_link_options(cadmia INTERFACE
-        $<$<CXX_COMPILER_ID:Clang,AppleClang>:-fprofile-instr-generate>
-    )
-endif()
 
 # ============================================================================
 # Testing
@@ -119,15 +108,8 @@ if(CADMIA_BUILD_TESTS)
         endforeach()
     endif()
     
-    # Code coverage for Debug builds (Unix only, excluding macOS due to issues)
-    if(CMAKE_BUILD_TYPE MATCHES Debug AND UNIX AND NOT APPLE)
-        target_compile_options(cadmia INTERFACE
-            $<$<CONFIG:Debug>:-ftest-coverage -fprofile-arcs>
-        )
-        target_link_options(cadmia INTERFACE
-            $<$<CONFIG:Debug>:-ftest-coverage -fprofile-arcs>
-        )
-    endif()
+    # Code coverage flags are applied to test targets in test/unit/CMakeLists.txt,
+    # not on the INTERFACE library (coverage is a test-suite concern, not a library one).
     
     # Add test subdirectories (unit and concepts)
     add_subdirectory(test)
