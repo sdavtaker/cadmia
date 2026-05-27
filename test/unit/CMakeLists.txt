@@ -32,6 +32,12 @@ foreach(test_src IN LISTS TEST_SOURCES)
         $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-frounding-math -fno-unsafe-math-optimizations -fno-strict-overflow>
     )
 
+    # Code coverage instrumentation for Debug builds (Unix only, not macOS).
+    if(CMAKE_BUILD_TYPE MATCHES Debug AND UNIX AND NOT APPLE)
+        target_compile_options(${test_name} PRIVATE -ftest-coverage -fprofile-arcs)
+        target_link_options(${test_name} PRIVATE -ftest-coverage -fprofile-arcs)
+    endif()
+
     # Auto-discover Catch2 TEST_CASEs and register them with CTest when available
     if(COMMAND catch_discover_tests)
         catch_discover_tests(${test_name}

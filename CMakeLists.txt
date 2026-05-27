@@ -108,9 +108,6 @@ if(CADMIA_BUILD_TESTS)
         endforeach()
     endif()
     
-    # Code coverage flags are applied to test targets in test/unit/CMakeLists.txt,
-    # not on the INTERFACE library (coverage is a test-suite concern, not a library one).
-    
     # Add test subdirectories (unit and concepts)
     add_subdirectory(test)
 endif()
