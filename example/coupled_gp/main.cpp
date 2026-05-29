@@ -44,12 +44,12 @@ int main() {
     accumulator::state_t as{};
     auto acc_s0 = cadmia::modeling::interval<accumulator::state_t>::closed(as, as);
 
-    // Translation: generator output (interval<dec3>) → accumulator input (interval<int>)
+    // Translation: generator output (interval<double>) → accumulator input (interval<int>)
     // Each generator tick contributes 1 to the running sum.
     auto gen_to_acc = make_translation<generator::output_i_t, accumulator::input_i_t>(
         [](generator::output_i_t y) -> accumulator::input_i_t {
-            return accumulator::input_i_t::closed(static_cast<int>(y.lower.raw_value() / 1000),
-                                                  static_cast<int>(y.upper.raw_value() / 1000));
+            return accumulator::input_i_t::closed(static_cast<int>(y.lower),
+                                                  static_cast<int>(y.upper));
         });
 
     // Select: lexicographic minimum of imminent component names

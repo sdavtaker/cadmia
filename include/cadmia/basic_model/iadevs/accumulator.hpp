@@ -27,10 +27,10 @@
 
 #pragma once
 
-#include <cadmia/modeling/decimal.hpp>
 #include <cadmia/modeling/interval.hpp>
 
 #include <compare>
+#include <limits>
 #include <stdexcept>
 
 // IA-DEVS Accumulator model.
@@ -55,7 +55,7 @@ namespace cadmia::iadevs {
 
     class accumulator {
       public:
-        using dec3 = cadmia::modeling::decimal<3>;
+        using dec3 = double;
 
         enum class phase_t : int { passive = 0, output = 1 };
 
@@ -116,7 +116,8 @@ namespace cadmia::iadevs {
                 return time_i_t::closed(time_t{}, time_t{}); // [0, 0]
 
             if (lo_phase == phase_t::passive && hi_phase == phase_t::output)
-                return time_i_t::right_open(time_t{}, cadmia::modeling::plus_inf); // [0, +inf)
+                return time_i_t::right_open(time_t{},
+                                            std::numeric_limits<time_t>::infinity()); // [0, +inf)
 
             // output < passive violates interval ordering
             throw std::logic_error("accumulator: lower phase OUTPUT > upper phase PASSIVE");

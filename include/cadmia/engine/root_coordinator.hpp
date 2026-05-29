@@ -192,19 +192,9 @@ namespace cadmia::engine {
         static std::string interval_str(const time_i_t &iv) {
             std::string s;
             s += iv.lower_closed ? "[" : "(";
-            if (iv.lower_inf_sign == -1)
-                s += "-inf";
-            else if (iv.lower_inf_sign == +1)
-                s += "+inf";
-            else
-                s += val_str(iv.lower);
+            s += iv.is_lower_infinite() ? "-inf" : val_str(iv.lower);
             s += ", ";
-            if (iv.upper_inf_sign == +1)
-                s += "+inf";
-            else if (iv.upper_inf_sign == -1)
-                s += "-inf";
-            else
-                s += val_str(iv.upper);
+            s += iv.is_upper_infinite() ? "+inf" : val_str(iv.upper);
             s += iv.upper_closed ? "]" : ")";
             return s;
         }

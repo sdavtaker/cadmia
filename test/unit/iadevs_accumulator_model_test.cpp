@@ -31,7 +31,8 @@ namespace {
                                  state_t{phase_t::output, total_hi});
     }
     time_i_t t(int ms) {
-        return time_i_t::closed(dec3::from_scaled(ms), dec3::from_scaled(ms));
+        const double v = ms * 0.001;
+        return time_i_t::closed(v, v);
     }
     input_i_t job(int lo, int hi) {
         return input_i_t::closed(lo, hi);
@@ -69,8 +70,8 @@ TEST_CASE("Accumulator time_advance OUTPUT→OUTPUT returns [0,0]", "[accumulato
     auto s  = output_state(5, 5);
     auto ta = accumulator::time_advance(s);
     CHECK_FALSE(ta.is_empty());
-    CHECK(ta.lower == dec3{});
-    CHECK(ta.upper == dec3{});
+    CHECK(ta.lower == 0.0);
+    CHECK(ta.upper == 0.0);
     CHECK(ta.lower_closed);
     CHECK(ta.upper_closed);
 }
@@ -101,7 +102,7 @@ TEST_CASE("Accumulator accumulates across multiple external events", "[accumulat
 TEST_CASE("Accumulator simulator: init, external, internal round-trip", "[accumulator]") {
     sim_t sim;
     auto init_state = passive_state(0, 0);
-    auto zero       = time_i_t::closed(dec3{}, dec3{});
+    auto zero       = time_i_t::closed(0.0, 0.0);
     sim.init(init_state, zero, zero);
 
     // t_next should be passive (empty)

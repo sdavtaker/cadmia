@@ -27,10 +27,10 @@
 
 #pragma once
 
-#include <cadmia/modeling/decimal.hpp>
 #include <cadmia/modeling/interval.hpp>
 
 #include <compare>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
@@ -54,7 +54,7 @@ namespace cadmia::iadevs {
 
     class counter {
       public:
-        using dec3 = cadmia::modeling::decimal<3>; // 1 ms resolution
+        using dec3 = double; // kept for test compatibility
 
         // Phase enumeration
         enum class phase_t : int { passive = 0, output = 1 };
@@ -62,7 +62,7 @@ namespace cadmia::iadevs {
         // Base types required by IADEVSAtomicModel concept
         struct state_t {
             phase_t phase{phase_t::passive}; // current phase (ordered first)
-            int     count{0};                // accumulated count
+            int count{0};                    // accumulated count
 
             // Default constructor
             constexpr state_t() noexcept = default;
@@ -94,6 +94,11 @@ namespace cadmia::iadevs {
         using state_i_t  = cadmia::modeling::interval<state_t>;
         using time_i_t   = cadmia::modeling::interval<time_t>;
 
+        // Sentinel representing an unbounded upper state (no std::numeric_limits<state_t> infinity)
+        [[nodiscard]] static constexpr state_t max_state() noexcept {
+            return {phase_t::output, std::numeric_limits<int>::max()};
+        }
+
         // Approximated functions
 
         // internal_transition: after outputting, reset count to 0 and return to passive
@@ -104,7 +109,6 @@ namespace cadmia::iadevs {
 
             const bool lower_passive = (s.lower.phase == phase_t::passive);
             const bool lower_output  = (s.lower.phase == phase_t::output);
-            const bool upper_passive = (s.upper.phase == phase_t::passive);
             const bool upper_output  = (s.upper.phase == phase_t::output);
 
             // Case 1: both endpoints in output phase -> reset to [(passive,0),(passive,0)]
@@ -121,17 +125,16 @@ namespace cadmia::iadevs {
                 return state_i_t::closed(lo, hi);
             }
 
-            // Case 3: lower is passive and upper is +inf (right-open)
-            // -> reset lower to 0 and propagate right-open to +inf in passive phase
-            if (lower_passive && s.is_upper_infinite()) {
+            // Case 3: lower is passive and upper is max_state sentinel (right-open unbounded)
+            // -> reset lower to 0 and propagate right-open sentinel in passive phase
+            if (lower_passive && s.upper == max_state()) {
                 state_t lo{phase_t::passive, 0};
-                // Preserve right-open to +inf
-                return state_i_t::right_open(lo, cadmia::modeling::plus_inf);
+                return state_i_t::right_open(lo, max_state());
             }
 
-            // Case 4: lower is output and upper is +inf (right-open)
-            // -> all states are in output phase up to +inf; reset to passive 0
-            if (lower_output && s.is_upper_infinite()) {
+            // Case 4: lower is output and upper is max_state sentinel (right-open unbounded)
+            // -> all states are in output phase up to sentinel; reset to passive 0
+            if (lower_output && s.upper == max_state()) {
                 state_t result_state{phase_t::passive, 0};
                 return state_i_t::closed(result_state, result_state);
             }
@@ -156,15 +159,14 @@ namespace cadmia::iadevs {
 
             // Handle uncertain input interval [Add, Reset]
             if (x.lower == input_event_t::add && x.upper == input_event_t::reset) {
-                // Per spec: produce interval spanning passive lower (Add path) and output upper (Reset path)
-                // Lower bound: Add path does NOT increment (stays passive, same count)
+                // Per spec: produce interval spanning passive lower (Add path) and output upper
+                // (Reset path) Lower bound: Add path does NOT increment (stays passive, same count)
                 // Upper bound: Add path DOES increment (+1) before Reset changes phase to output
                 state_t lower_result{phase_t::passive, state.lower.count};
-                // Preserve right-open upper if original state upper is infinite
-                if (state.is_upper_infinite()) {
-                    // Right-open to +inf with output phase at upper bound
+                // Preserve right-open upper if original state upper is the max sentinel
+                if (state.upper == max_state()) {
                     state_t lo = lower_result;
-                    return state_i_t::right_open(lo, cadmia::modeling::plus_inf);
+                    return state_i_t::right_open(lo, max_state());
                 }
                 state_t upper_result{phase_t::output, state.upper.count + 1};
                 return state_i_t::closed(lower_result, upper_result);
@@ -240,7 +242,7 @@ namespace cadmia::iadevs {
 
             // Mixed phases: lower passive, upper output => [0, +inf) right-open
             if (lower_passive && upper_output) {
-                return time_i_t::right_open(time_t{}, cadmia::modeling::plus_inf);
+                return time_i_t::right_open(time_t{}, std::numeric_limits<time_t>::infinity());
             }
 
             // Mixed phases: lower output, upper passive => invalid state

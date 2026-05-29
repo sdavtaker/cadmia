@@ -37,9 +37,9 @@ using cadmia::iadevs::processor;
 static_assert(cadmia::IADEVSAtomicModel<processor>, "processor must satisfy IADEVSAtomicModel concept");
 
 namespace {
-    // Helpers to make expectations readable: build dec3 from scaled integer
+    // Helpers to make expectations readable: convert millisecond-scaled integer to double seconds
     static inline processor::dec3 ts(int raw_scaled) {
-        return processor::dec3::from_scaled(raw_scaled);
+        return raw_scaled * 0.001;
     }
     // Build a job interval [id, id]
     static inline processor::input_i_t job(int id) {

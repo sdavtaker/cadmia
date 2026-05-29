@@ -26,27 +26,25 @@
  */
 
 // Basic tests for IA-DEVS counter model
-#include <catch2/catch_test_macros.hpp>
-
 #include <cadmia/basic_model/iadevs/counter.hpp>
 #include <cadmia/concepts/iadevs_atomic_model.hpp>
+
+#include <catch2/catch_test_macros.hpp>
 
 using cadmia::iadevs::counter;
 
 // Compile-time verification that counter satisfies the IADEVSAtomicModel concept
-static_assert(cadmia::IADEVSAtomicModel<counter>, 
-              "counter must satisfy IADEVSAtomicModel concept");
+static_assert(cadmia::IADEVSAtomicModel<counter>, "counter must satisfy IADEVSAtomicModel concept");
 
 namespace {
     // Helper to create Add event interval
     static inline counter::input_i_t add_event() {
-        return counter::input_i_t::closed(counter::input_event_t::add, 
-                                          counter::input_event_t::add);
+        return counter::input_i_t::closed(counter::input_event_t::add, counter::input_event_t::add);
     }
 
     // Helper to create Reset event interval
     static inline counter::input_i_t reset_event() {
-        return counter::input_i_t::closed(counter::input_event_t::reset, 
+        return counter::input_i_t::closed(counter::input_event_t::reset,
                                           counter::input_event_t::reset);
     }
 
@@ -68,10 +66,9 @@ namespace {
 
     // Helper to create elapsed time interval
     static inline counter::time_i_t elapsed(int low_ms, int high_ms) {
-        return counter::time_i_t::closed(counter::dec3::from_scaled(low_ms), 
-                                         counter::dec3::from_scaled(high_ms));
+        return counter::time_i_t::closed(low_ms * 0.001, high_ms * 0.001);
     }
-}
+} // namespace
 
 SCENARIO("IA-DEVS counter initial state and passivity", "[iadevs][counter]") {
     GIVEN("an initial counter state (count=0, passive)") {
@@ -96,7 +93,7 @@ SCENARIO("IA-DEVS counter initial state and passivity", "[iadevs][counter]") {
 
 SCENARIO("IA-DEVS counter Add event processing", "[iadevs][counter]") {
     GIVEN("a passive counter with count=0") {
-        const auto state = passive_state(0);
+        const auto state        = passive_state(0);
         const auto elapsed_time = elapsed(0, 0); // arbitrary
 
         WHEN("an Add event is received") {
@@ -118,7 +115,7 @@ SCENARIO("IA-DEVS counter Add event processing", "[iadevs][counter]") {
     }
 
     GIVEN("a passive counter with count=5") {
-        const auto state = passive_state(5);
+        const auto state        = passive_state(5);
         const auto elapsed_time = elapsed(0, 0);
 
         WHEN("an Add event is received") {
@@ -134,9 +131,9 @@ SCENARIO("IA-DEVS counter Add event processing", "[iadevs][counter]") {
     }
 
     GIVEN("a passive counter with interval count [3, 5]") {
-    counter::state_t lower_state{counter::phase_t::passive, 3};
-    counter::state_t upper_state{counter::phase_t::passive, 5};
-        const auto state = counter::state_i_t::closed(lower_state, upper_state);
+        counter::state_t lower_state{counter::phase_t::passive, 3};
+        counter::state_t upper_state{counter::phase_t::passive, 5};
+        const auto state        = counter::state_i_t::closed(lower_state, upper_state);
         const auto elapsed_time = elapsed(0, 0);
 
         WHEN("an Add event is received") {
@@ -156,12 +153,12 @@ SCENARIO("IA-DEVS counter uncertain input [Add, Reset] processing", "[iadevs][co
     GIVEN("a passive counter with interval count [3, 5]") {
         counter::state_t lower_state{counter::phase_t::passive, 3};
         counter::state_t upper_state{counter::phase_t::passive, 5};
-        const auto state = counter::state_i_t::closed(lower_state, upper_state);
+        const auto state        = counter::state_i_t::closed(lower_state, upper_state);
         const auto elapsed_time = elapsed(0, 0);
 
         // Mixed input interval [Add, Reset]
-        const auto mixed_input = counter::input_i_t::closed(counter::input_event_t::add,
-                                                           counter::input_event_t::reset);
+        const auto mixed_input =
+            counter::input_i_t::closed(counter::input_event_t::add, counter::input_event_t::reset);
 
         WHEN("an uncertain [Add, Reset] input is received") {
             const auto new_state = counter::external_transition(state, elapsed_time, mixed_input);
@@ -170,15 +167,15 @@ SCENARIO("IA-DEVS counter uncertain input [Add, Reset] processing", "[iadevs][co
                 REQUIRE_FALSE(new_state.is_empty());
                 REQUIRE(new_state.lower.phase == counter::phase_t::passive);
                 REQUIRE(new_state.upper.phase == counter::phase_t::output);
-                REQUIRE(new_state.lower.count == 3);  // lower unchanged
-                REQUIRE(new_state.upper.count == 6);  // upper incremented: 5+1=6
+                REQUIRE(new_state.lower.count == 3); // lower unchanged
+                REQUIRE(new_state.upper.count == 6); // upper incremented: 5+1=6
             }
 
             THEN("time_advance for mixed phase becomes [0, +inf) right-open") {
                 const auto ta = counter::time_advance(new_state);
                 REQUIRE_FALSE(ta.is_empty());
-                REQUIRE(ta.lower == counter::dec3{});
-                REQUIRE(ta.upper_inf_sign == +1); // +inf
+                REQUIRE(ta.lower == 0.0);
+                REQUIRE(ta.is_upper_infinite());
                 REQUIRE(ta.lower_closed);
                 REQUIRE_FALSE(ta.upper_closed);
             }
@@ -188,7 +185,7 @@ SCENARIO("IA-DEVS counter uncertain input [Add, Reset] processing", "[iadevs][co
 
 SCENARIO("IA-DEVS counter Reset event processing", "[iadevs][counter]") {
     GIVEN("a passive counter with count=3") {
-        const auto state = passive_state(3);
+        const auto state        = passive_state(3);
         const auto elapsed_time = elapsed(0, 0);
 
         WHEN("a Reset event is received") {
@@ -204,8 +201,8 @@ SCENARIO("IA-DEVS counter Reset event processing", "[iadevs][counter]") {
             THEN("time_advance returns [0,0] (immediate)") {
                 const auto ta = counter::time_advance(new_state);
                 REQUIRE_FALSE(ta.is_empty());
-                REQUIRE(ta.lower == counter::dec3{});
-                REQUIRE(ta.upper == counter::dec3{});
+                REQUIRE(ta.lower == 0.0);
+                REQUIRE(ta.upper == 0.0);
                 REQUIRE(ta.lower_closed);
                 REQUIRE(ta.upper_closed);
             }
@@ -223,7 +220,7 @@ SCENARIO("IA-DEVS counter Reset event processing", "[iadevs][counter]") {
     }
 
     GIVEN("a passive counter with count=0") {
-        const auto state = passive_state(0);
+        const auto state        = passive_state(0);
         const auto elapsed_time = elapsed(0, 0);
 
         WHEN("a Reset event is received (output zero)") {
@@ -247,9 +244,9 @@ SCENARIO("IA-DEVS counter Reset event processing", "[iadevs][counter]") {
     }
 
     GIVEN("a passive counter with interval count [7, 10]") {
-    counter::state_t lower_state{counter::phase_t::passive, 7};
-    counter::state_t upper_state{counter::phase_t::passive, 10};
-        const auto state = counter::state_i_t::closed(lower_state, upper_state);
+        counter::state_t lower_state{counter::phase_t::passive, 7};
+        counter::state_t upper_state{counter::phase_t::passive, 10};
+        const auto state        = counter::state_i_t::closed(lower_state, upper_state);
         const auto elapsed_time = elapsed(0, 0);
 
         WHEN("a Reset event is received") {
@@ -291,8 +288,8 @@ SCENARIO("IA-DEVS counter internal transition (reset after output)", "[iadevs][c
     }
 
     GIVEN("a counter in output phase with interval count [2, 8]") {
-    counter::state_t lower_state{counter::phase_t::output, 2};
-    counter::state_t upper_state{counter::phase_t::output, 8};
+        counter::state_t lower_state{counter::phase_t::output, 2};
+        counter::state_t upper_state{counter::phase_t::output, 8};
         const auto state = counter::state_i_t::closed(lower_state, upper_state);
 
         WHEN("internal_transition is applied") {
@@ -337,8 +334,8 @@ SCENARIO("IA-DEVS counter time_advance semantics", "[iadevs][counter]") {
 
             THEN("TA is [0, 0] (immediate)") {
                 REQUIRE_FALSE(ta.is_empty());
-                REQUIRE(ta.lower == counter::dec3{});
-                REQUIRE(ta.upper == counter::dec3{});
+                REQUIRE(ta.lower == 0.0);
+                REQUIRE(ta.upper == 0.0);
             }
         }
     }
@@ -381,7 +378,7 @@ SCENARIO("IA-DEVS counter output function validation", "[iadevs][counter]") {
 
 SCENARIO("IA-DEVS counter complete simulation sequence", "[iadevs][counter]") {
     GIVEN("initial state (0, passive)") {
-        auto state = passive_state(0);
+        auto state   = passive_state(0);
         const auto e = elapsed(0, 0);
 
         WHEN("sequence: Add, Add, Add, Reset, Internal") {
@@ -408,7 +405,7 @@ SCENARIO("IA-DEVS counter complete simulation sequence", "[iadevs][counter]") {
             // Verify TA is [0, 0]
             auto ta = counter::time_advance(state);
             REQUIRE_FALSE(ta.is_empty());
-            REQUIRE(ta.lower == counter::dec3{});
+            REQUIRE(ta.lower == 0.0);
 
             // Verify output is 3
             auto y = counter::output(state);
@@ -431,10 +428,10 @@ SCENARIO("IA-DEVS counter complete simulation sequence", "[iadevs][counter]") {
 SCENARIO("IA-DEVS counter error handling", "[iadevs][counter]") {
     GIVEN("empty state interval") {
         const auto state = counter::state_i_t::empty_interval();
-        const auto e = elapsed(0, 0);
+        const auto e     = elapsed(0, 0);
 
         THEN("external_transition throws") {
-            REQUIRE_THROWS_AS(counter::external_transition(state, e, add_event()), 
+            REQUIRE_THROWS_AS(counter::external_transition(state, e, add_event()),
                               std::invalid_argument);
         }
 
@@ -448,12 +445,12 @@ SCENARIO("IA-DEVS counter error handling", "[iadevs][counter]") {
     }
 
     GIVEN("empty input interval") {
-        const auto state = passive_state(5);
-        const auto e = elapsed(0, 0);
+        const auto state       = passive_state(5);
+        const auto e           = elapsed(0, 0);
         const auto empty_input = counter::input_i_t::empty_interval();
 
         THEN("external_transition throws") {
-            REQUIRE_THROWS_AS(counter::external_transition(state, e, empty_input), 
+            REQUIRE_THROWS_AS(counter::external_transition(state, e, empty_input),
                               std::invalid_argument);
         }
     }

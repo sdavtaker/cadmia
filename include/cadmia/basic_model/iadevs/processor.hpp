@@ -27,13 +27,12 @@
 
 #pragma once
 
-#include <cadmia/modeling/decimal.hpp>
 #include <cadmia/modeling/interval.hpp>
 
 #include <deque>
+#include <limits>
 #include <stdexcept>
 #include <string>
-#include <type_traits>
 
 // IA-DEVS Processor example model, following "Uncertainty on Discrete-Event
 // System Simulation" (Processor_IA)
@@ -45,8 +44,8 @@ namespace cadmia::iadevs {
 
     class processor {
       public:
-        using dec3     = cadmia::modeling::decimal<3>; // 1 ms resolution
-        using job_id_t = int;                          // job identifier base type
+        using dec3     = double; // kept for test compatibility
+        using job_id_t = int;    // job identifier base type
         // Base types required by IADEVSAtomicModel concept
         using input_t  = job_id_t;   // input base type (job ID)
         using output_t = job_id_t;   // output base type (job ID)
@@ -54,18 +53,18 @@ namespace cadmia::iadevs {
             dec3 tocj;               // in [0, proc_duration]
             std::deque<job_id_t> qj; // queue of job-id intervals
 
-            // Comparison: order by tocj, then queue size, then queue elements
+            // Comparison: order by tocj, then queue size, then queue elements.
+            // tocj is double (partial_ordering) so we convert explicitly to strong_ordering.
             [[nodiscard]] std::strong_ordering operator<=>(const state_t &other) const noexcept {
-                if (auto cmp = tocj <=> other.tocj; cmp != 0) {
+                if (tocj < other.tocj)
+                    return std::strong_ordering::less;
+                if (other.tocj < tocj)
+                    return std::strong_ordering::greater;
+                if (auto cmp = qj.size() <=> other.qj.size(); cmp != 0)
                     return cmp;
-                }
-                if (auto cmp = qj.size() <=> other.qj.size(); cmp != 0) {
-                    return cmp;
-                }
                 for (std::size_t i = 0; i < qj.size(); ++i) {
-                    if (auto cmp = qj[i] <=> other.qj[i]; cmp != 0) {
+                    if (auto cmp = qj[i] <=> other.qj[i]; cmp != 0)
                         return cmp;
-                    }
                 }
                 return std::strong_ordering::equal;
             }
@@ -176,7 +175,7 @@ namespace cadmia::iadevs {
                 const time_t z{};
                 if (lb < z)
                     lb = z;
-                return time_i_t::right_open(lb, cadmia::modeling::plus_inf);
+                return time_i_t::right_open(lb, std::numeric_limits<time_t>::infinity());
             }
             // Safety: if upper empty (should not happen for valid intervals), treat as passive
             if (upper_empty) {
@@ -191,7 +190,7 @@ namespace cadmia::iadevs {
       private:
         // Configuration: fixed processing time (250 ms)
         [[nodiscard]] static constexpr time_t processing_time() noexcept {
-            return time_t::from_scaled(250); // 0.250 s
+            return 0.250;
         }
 
         // Helpers
