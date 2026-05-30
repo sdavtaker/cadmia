@@ -118,19 +118,8 @@ namespace cadmia::iadevs {
             const bool lower_output  = (s.lower.phase == phase_t::output);
             const bool upper_output  = (s.upper.phase == phase_t::output);
 
-            // Case 1: both endpoints in output phase -> reset to [(passive,0),(passive,0)]
-            if (lower_output && upper_output) {
-                state_t result_state{phase_t::passive, 0};
-                return state_i_t::closed(result_state, result_state);
-            }
-
-            // Case 2: mixed phases where lower is passive and upper is output
-            // -> reset lower to 0, keep upper count, move both to passive
-            if (lower_passive && upper_output) {
-                state_t lo{phase_t::passive, 0};
-                state_t hi{phase_t::passive, s.upper.count};
-                return state_i_t::closed(lo, hi);
-            }
+            // max_state() has phase_t::output, so its sentinel checks must come before the
+            // phase-only cases — otherwise Case 1/2 absorb them and lose the right-open bound.
 
             // Case 3: lower is passive and upper is max_state sentinel (right-open unbounded)
             // -> reset lower to 0 and propagate right-open sentinel in passive phase
@@ -144,6 +133,20 @@ namespace cadmia::iadevs {
             if (lower_output && s.upper == max_state()) {
                 state_t result_state{phase_t::passive, 0};
                 return state_i_t::closed(result_state, result_state);
+            }
+
+            // Case 1: both endpoints in output phase -> reset to [(passive,0),(passive,0)]
+            if (lower_output && upper_output) {
+                state_t result_state{phase_t::passive, 0};
+                return state_i_t::closed(result_state, result_state);
+            }
+
+            // Case 2: mixed phases where lower is passive and upper is output
+            // -> reset lower to 0, keep upper count, move both to passive
+            if (lower_passive && upper_output) {
+                state_t lo{phase_t::passive, 0};
+                state_t hi{phase_t::passive, s.upper.count};
+                return state_i_t::closed(lo, hi);
             }
 
             // Any other configuration is invalid for an internal transition
