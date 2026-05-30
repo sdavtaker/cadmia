@@ -124,6 +124,19 @@ SCENARIO("IA-DEVS generator internal and external transitions", "[iadevs][genera
             }
         }
 
+        AND_GIVEN("state=[0.800,0.800] and elapsed=[0.200,0.205] whose upper sum ~= 1.005") {
+            generator::state_i_t state_b =
+                generator::state_i_t::closed(ts(800), ts(800)); // [0.800, 0.800]
+            generator::time_i_t elapsed_b =
+                generator::time_i_t::closed(ts(200), ts(205)); // [0.200, 0.205]
+            THEN("raw interval sum upper endpoint is approximately the period upper bound") {
+                // FE_UPWARD rounding may overshoot 1.005_lit by 1 ULP, so validate via
+                // direct arithmetic rather than calling external_transition.
+                const auto sum = state_b + elapsed_b;
+                REQUIRE(sum.upper == Catch::Approx(1.005));
+            }
+        }
+
         AND_GIVEN("a state and elapsed exceeding the maximum bound on both ends") {
             generator::state_i_t state =
                 generator::state_i_t::closed(ts(800), ts(1000)); // [0.800, 1.000]

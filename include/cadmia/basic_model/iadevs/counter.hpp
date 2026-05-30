@@ -94,7 +94,14 @@ namespace cadmia::iadevs {
         using state_i_t  = cadmia::modeling::interval<state_t>;
         using time_i_t   = cadmia::modeling::interval<time_t>;
 
-        // Sentinel representing an unbounded upper state (no std::numeric_limits<state_t> infinity)
+        // Reserved sentinel for right-open ("unbounded") state intervals.
+        // state_t has no std::numeric_limits infinity, so internal_transition and
+        // external_transition use this value as the upper bound of right-open intervals
+        // in place of the old infinity_bound tag.
+        //
+        // INVARIANT: no reachable simulation path produces a state with count == INT_MAX;
+        // callers must never construct a state_i_t whose upper endpoint equals max_state()
+        // except through the model's own transition functions.
         [[nodiscard]] static constexpr state_t max_state() noexcept {
             return {phase_t::output, std::numeric_limits<int>::max()};
         }
