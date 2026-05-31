@@ -44,13 +44,12 @@ namespace cadmia::iadevs {
 
     class processor {
       public:
-        using dec3     = double; // kept for test compatibility
-        using job_id_t = int;    // job identifier base type
+        using job_id_t = int; // job identifier base type
         // Base types required by IADEVSAtomicModel concept
         using input_t  = job_id_t;   // input base type (job ID)
         using output_t = job_id_t;   // output base type (job ID)
         struct state_t {             // state base type
-            dec3 tocj;               // in [0, proc_duration]
+            double tocj;             // in [0, proc_duration]
             std::deque<job_id_t> qj; // queue of job-id intervals
 
             // Comparison: order by tocj, then queue size, then queue elements.
@@ -71,7 +70,7 @@ namespace cadmia::iadevs {
 
             [[nodiscard]] bool operator==(const state_t &other) const noexcept = default;
         };
-        using time_t = dec3; // time base type
+        using time_t = double;
 
         // Interval aliases for convenience (not required by concept)
         using input_i_t  = cadmia::modeling::interval<job_id_t>;

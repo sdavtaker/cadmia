@@ -15,7 +15,7 @@ using simulator_t = cadmia::engine::simulator<processor>;
 
 namespace {
     // Helper: convert millisecond-scaled integer to double seconds
-    inline processor::dec3 ts(int raw) {
+    inline double ts(int raw) {
         return raw * 0.001;
     }
 

@@ -43,7 +43,6 @@ namespace cadmia::iadevs {
     class generator {
       public:
         // Base types required by IADEVSAtomicModel concept
-        using dec3     = double; // convenience alias (kept for test compatibility)
         using time_t   = double;
         using state_t  = double;
         using input_t  = double;

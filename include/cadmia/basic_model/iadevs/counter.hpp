@@ -54,8 +54,6 @@ namespace cadmia::iadevs {
 
     class counter {
       public:
-        using dec3 = double; // kept for test compatibility
-
         // Phase enumeration
         enum class phase_t : int { passive = 0, output = 1 };
 
@@ -84,7 +82,7 @@ namespace cadmia::iadevs {
         // Input event enumeration
         enum class input_event_t : int { add = 0, reset = 1 };
 
-        using time_t   = dec3;          // time base type
+        using time_t   = double;
         using input_t  = input_event_t; // input base type
         using output_t = int;           // output base type (count value)
 

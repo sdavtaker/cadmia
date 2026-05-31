@@ -19,8 +19,6 @@ using state_i_t  = accumulator::state_i_t;
 using time_i_t   = accumulator::time_i_t;
 using input_i_t  = accumulator::input_i_t;
 using output_i_t = accumulator::output_i_t;
-using dec3       = accumulator::dec3;
-
 namespace {
     state_i_t passive_state(int total_lo, int total_hi) {
         return state_i_t::closed(state_t{phase_t::passive, total_lo},

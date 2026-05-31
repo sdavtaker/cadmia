@@ -55,8 +55,6 @@ namespace cadmia::iadevs {
 
     class accumulator {
       public:
-        using dec3 = double;
-
         enum class phase_t : int { passive = 0, output = 1 };
 
         struct state_t {
@@ -74,7 +72,7 @@ namespace cadmia::iadevs {
             bool operator==(const state_t &) const noexcept = default;
         };
 
-        using time_t   = dec3;
+        using time_t   = double;
         using input_t  = int;
         using output_t = int;
 

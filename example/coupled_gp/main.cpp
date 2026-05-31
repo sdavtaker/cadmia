@@ -7,7 +7,7 @@
 
 // Example: generator feeding an accumulator via a typed translation.
 //
-// The generator fires periodically; each output (interval<dec3>) is translated
+// The generator fires periodically; each output (interval<double>) is translated
 // to an integer tick (interval<int>) and forwarded to the accumulator, which
 // sums the received ticks and immediately outputs the running total.  A single
 // generator means compute_branches never produces more than one branch, so the

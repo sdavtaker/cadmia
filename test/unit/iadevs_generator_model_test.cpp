@@ -40,7 +40,7 @@ static_assert(cadmia::IADEVSAtomicModel<generator>,
 
 namespace {
     // Helpers to make expectations readable: convert millisecond-scaled integer to double seconds
-    static inline generator::dec3 ts(int raw_scaled) {
+    static inline double ts(int raw_scaled) {
         return raw_scaled * 0.001;
     }
 } // namespace
