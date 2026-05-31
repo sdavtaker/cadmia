@@ -26,26 +26,27 @@
  */
 
 // Basic tests for IA-DEVS processor model
-#include <catch2/catch_test_macros.hpp>
-
 #include <cadmia/basic_model/iadevs/processor.hpp>
 #include <cadmia/concepts/iadevs_atomic_model.hpp>
+
+#include <catch2/catch_test_macros.hpp>
 
 using cadmia::iadevs::processor;
 
 // Compile-time verification that processor satisfies the IADEVSAtomicModel concept
-static_assert(cadmia::IADEVSAtomicModel<processor>, "processor must satisfy IADEVSAtomicModel concept");
+static_assert(cadmia::IADEVSAtomicModel<processor>,
+              "processor must satisfy IADEVSAtomicModel concept");
 
 namespace {
-    // Helpers to make expectations readable: build dec3 from scaled integer
-    static inline processor::dec3 ts(int raw_scaled) {
-        return processor::dec3::from_scaled(raw_scaled);
+    // Helpers to make expectations readable: convert millisecond-scaled integer to double seconds
+    static inline double ts(int raw_scaled) {
+        return raw_scaled * 0.001;
     }
     // Build a job interval [id, id]
     static inline processor::input_i_t job(int id) {
         return processor::input_i_t::closed(id, id);
     }
-}
+} // namespace
 
 SCENARIO("IA-DEVS processor state construction and passivity", "[iadevs][processor]") {
     GIVEN("an idle processor (empty queue)") {
@@ -86,10 +87,10 @@ SCENARIO("IA-DEVS processor state construction and passivity", "[iadevs][process
 
     GIVEN("a processor with two jobs in the queue") {
         processor::state_t sl{}, sr{};
-        sl.tocj = ts(0);
-        sr.tocj = ts(0);
-        sl.qj = {1, 2};
-        sr.qj = {3, 4};
+        sl.tocj                = ts(0);
+        sr.tocj                = ts(0);
+        sl.qj                  = {1, 2};
+        sr.qj                  = {3, 4};
         processor::state_i_t s = processor::state_i_t::closed(sl, sr);
 
         THEN("time_advance returns [0.250, 0.250] (processing time)") {
@@ -120,7 +121,8 @@ SCENARIO("IA-DEVS processor state construction and passivity", "[iadevs][process
         sr.qj.push_back(1);
         processor::state_i_t s = processor::state_i_t::closed(sl, sr);
 
-        THEN("time_advance returns [0.250 - tocj_upper, +inf) with lower closed and upper infinite open") {
+        THEN("time_advance returns [0.250 - tocj_upper, +inf) with lower closed and upper infinite "
+             "open") {
             const auto ta = processor::time_advance(s);
             REQUIRE_FALSE(ta.is_empty());
             REQUIRE(ta.lower == ts(250));
@@ -134,10 +136,10 @@ SCENARIO("IA-DEVS processor state construction and passivity", "[iadevs][process
 SCENARIO("IA-DEVS processor internal transition", "[iadevs][processor]") {
     GIVEN("a processor with two jobs [1,1] and [2,2] and tocj=[0.100, 0.150]") {
         processor::state_t sl{}, sr{};
-        sl.tocj = ts(100);
-        sr.tocj = ts(150);
-        sl.qj = {1, 2};
-        sr.qj = {1, 2};
+        sl.tocj                = ts(100);
+        sr.tocj                = ts(150);
+        sl.qj                  = {1, 2};
+        sr.qj                  = {1, 2};
         processor::state_i_t s = processor::state_i_t::closed(sl, sr);
 
         WHEN("internal_transition is applied") {
@@ -156,8 +158,8 @@ SCENARIO("IA-DEVS processor internal transition", "[iadevs][processor]") {
 
     GIVEN("a processor with an empty queue") {
         processor::state_t sl{}, sr{};
-        sl.tocj = ts(0);
-        sr.tocj = ts(0);
+        sl.tocj                = ts(0);
+        sr.tocj                = ts(0);
         processor::state_i_t s = processor::state_i_t::closed(sl, sr);
 
         THEN("internal_transition returns empty interval when queue size <= 1") {
@@ -175,7 +177,8 @@ SCENARIO("IA-DEVS processor external transition when idle", "[iadevs][processor]
         sr.qj.clear();
         processor::state_i_t s = processor::state_i_t::closed(sl, sr);
 
-        processor::time_i_t elapsed = processor::time_i_t::closed(ts(50), ts(100)); // arbitrary elapsed
+        processor::time_i_t elapsed =
+            processor::time_i_t::closed(ts(50), ts(100)); // arbitrary elapsed
 
         WHEN("external_transition is applied with job [3,3]") {
             const auto s_new = processor::external_transition(s, elapsed, job(3));
@@ -195,10 +198,10 @@ SCENARIO("IA-DEVS processor external transition when idle", "[iadevs][processor]
 SCENARIO("IA-DEVS processor external transition when busy", "[iadevs][processor]") {
     GIVEN("a busy processor with one job and tocj=[0.050, 0.100]") {
         processor::state_t sl{}, sr{};
-        sl.tocj = ts(50);
-        sr.tocj = ts(100);
-        sl.qj = {1};
-        sr.qj = {1};
+        sl.tocj                = ts(50);
+        sr.tocj                = ts(100);
+        sl.qj                  = {1};
+        sr.qj                  = {1};
         processor::state_i_t s = processor::state_i_t::closed(sl, sr);
 
         processor::time_i_t elapsed = processor::time_i_t::closed(ts(80), ts(120)); // elapsed
@@ -222,16 +225,18 @@ SCENARIO("IA-DEVS processor external transition when busy", "[iadevs][processor]
 
     GIVEN("a busy processor with elapsed exceeding processing time") {
         processor::state_t sl{}, sr{};
-        sl.tocj = ts(100);
-        sr.tocj = ts(150);
-        sl.qj = {2};
-        sr.qj = {2};
+        sl.tocj                = ts(100);
+        sr.tocj                = ts(150);
+        sl.qj                  = {2};
+        sr.qj                  = {2};
         processor::state_i_t s = processor::state_i_t::closed(sl, sr);
 
-        processor::time_i_t elapsed = processor::time_i_t::closed(ts(200), ts(300)); // exceeds [0, 0.250]
+        processor::time_i_t elapsed =
+            processor::time_i_t::closed(ts(200), ts(300)); // exceeds [0, 0.250]
 
         THEN("external_transition throws because elapsed is out of bounds") {
-            REQUIRE_THROWS_AS(processor::external_transition(s, elapsed, job(5)), std::invalid_argument);
+            REQUIRE_THROWS_AS(processor::external_transition(s, elapsed, job(5)),
+                              std::invalid_argument);
         }
     }
 }
@@ -239,10 +244,10 @@ SCENARIO("IA-DEVS processor external transition when busy", "[iadevs][processor]
 SCENARIO("IA-DEVS processor time_advance with partial progress", "[iadevs][processor]") {
     GIVEN("a processor with one job and tocj=[0.100, 0.150]") {
         processor::state_t sl{}, sr{};
-        sl.tocj = ts(100);
-        sr.tocj = ts(150);
-        sl.qj = {1};
-        sr.qj = {1};
+        sl.tocj                = ts(100);
+        sr.tocj                = ts(150);
+        sl.qj                  = {1};
+        sr.qj                  = {1};
         processor::state_i_t s = processor::state_i_t::closed(sl, sr);
 
         WHEN("time_advance is computed") {
@@ -250,8 +255,8 @@ SCENARIO("IA-DEVS processor time_advance with partial progress", "[iadevs][proce
 
             THEN("TA = [0.250, 0.250] - [0.100, 0.150] = [0.100, 0.150]") {
                 REQUIRE_FALSE(ta.is_empty());
-                REQUIRE(ta.lower == ts(100));  // 250 - 150
-                REQUIRE(ta.upper == ts(150));  // 250 - 100
+                REQUIRE(ta.lower == ts(100)); // 250 - 150
+                REQUIRE(ta.upper == ts(150)); // 250 - 100
             }
         }
     }

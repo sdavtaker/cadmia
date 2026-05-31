@@ -96,8 +96,7 @@ TEST_CASE("Coordinator t_next equals min of child t_nexts after init", "[coordin
     const auto &gen_tn = coord.engines().at("gen")->t_next();
     REQUIRE_FALSE(gen_tn.is_empty());
     // coordinator t_next.lower == gen t_next.lower
-    CHECK(time_i_t::endpoint_equal(coord.t_next().lower, coord.t_next().lower_inf_sign,
-                                   gen_tn.lower, gen_tn.lower_inf_sign));
+    CHECK(coord.t_next().lower == gen_tn.lower);
 }
 
 // ─── compute_branches ─────────────────────────────────────────────────────────
@@ -159,8 +158,7 @@ TEST_CASE("Coordinator execute_branch advances gen and updates t_next", "[coordi
     // t_next should have advanced (gen fires and schedules next)
     REQUIRE_FALSE(coord.t_next().is_empty());
     // New t_next lower bound should be > old lower bound
-    CHECK(time_i_t::endpoint_less(t_before.lower, t_before.lower_inf_sign, coord.t_next().lower,
-                                  coord.t_next().lower_inf_sign));
+    CHECK(t_before.lower < coord.t_next().lower);
 }
 
 // ─── clone ────────────────────────────────────────────────────────────────────
@@ -185,8 +183,7 @@ TEST_CASE("Coordinator clone produces independent copy", "[coordinator]") {
         }
 
     // Clone should be unaffected
-    CHECK(time_i_t::endpoint_equal(cloned->t_next().lower, cloned->t_next().lower_inf_sign,
-                                   t_original.lower, t_original.lower_inf_sign));
+    CHECK(cloned->t_next().lower == t_original.lower);
 }
 
 // ─── advance_t_next_past_limit ────────────────────────────────────────────────
@@ -221,16 +218,12 @@ TEST_CASE(
     // compute_branches should produce TWO branches:
     //   1. gen_a fires at [1000, 1000]
     //   2. defer gen_a + gen_b fires at [1000, 1000]
-    using dec3  = cadmia::modeling::decimal<3>;
-    using time3 = cadmia::modeling::interval<dec3>;
+    const T v1000 = 1.0;
 
-    const dec3 zero{};
-    const dec3 v1000 = dec3::from_scaled(1000); // 1.000
-
-    // gen_a: state_t=dec3, initial s0=[0,0], initial t=[0,0] → t_next=[997,1005]
-    auto gen_a_s0 = time3::closed(zero, zero);
-    auto gen_b_s0 = time3::closed(zero, zero);
-    auto ti       = time3::closed(zero, zero);
+    // gen_a: state_t=double, initial s0=[0,0], initial t=[0,0] → t_next=[0.997,1.005]
+    auto gen_a_s0 = time_i_t::closed(zero, zero);
+    auto gen_b_s0 = time_i_t::closed(zero, zero);
+    auto ti       = time_i_t::closed(zero, zero);
 
     CoupledModel<T>::component_map comps;
     comps.emplace("gen_a", make_atomic_component<generator>(gen_a_s0, ti));
@@ -248,7 +241,7 @@ TEST_CASE(
     // We do this by fabricating a punctual limit at [1000, 1000] and advancing gen_b's t_next
     // to that lower bound (open), then we directly probe compute_branches.
     // Easier: use a punctual limit [1000, 1000] as the query t.
-    auto punctual_t = time3::closed(v1000, v1000);
+    auto punctual_t = time_i_t::closed(v1000, v1000);
 
     auto branches = coord.compute_branches(punctual_t);
 

@@ -27,14 +27,10 @@
 
 #pragma once
 
-#include <cadmia/modeling/decimal.hpp>
 #include <cadmia/modeling/interval.hpp>
 
-#include <algorithm>
-#include <cmath>
 #include <limits>
 #include <stdexcept>
-#include <type_traits>
 
 // IA-DEVS Generator example model, following "Uncertainty on Discrete-Event
 // System Simulation" (Generator_IA)
@@ -47,11 +43,10 @@ namespace cadmia::iadevs {
     class generator {
       public:
         // Base types required by IADEVSAtomicModel concept
-        using dec3     = cadmia::modeling::decimal<3>; // convenience alias
-        using time_t   = dec3;                         // time base type
-        using state_t  = dec3;                         // state base type
-        using input_t  = dec3;                         // input base type
-        using output_t = dec3;                         // output base type
+        using time_t   = double;
+        using state_t  = double;
+        using input_t  = double;
+        using output_t = double;
 
         // Interval aliases for convenience (not required by concept)
         using time_i_t   = cadmia::modeling::interval<time_t>;
@@ -82,15 +77,14 @@ namespace cadmia::iadevs {
 
         // output(s) = [1.997, 2.003]
         [[nodiscard]] static output_i_t output(const state_i_t &) {
-            return output_i_t::closed(output_t::from_scaled(1997), output_t::from_scaled(2003));
+            return output_i_t::closed(1.997, 2.003);
         }
 
         // time_advance(s): validate state, then return [earliest, latest] per IA-DEVS
         [[nodiscard]] static time_i_t time_advance(const state_i_t &s) {
             validate_state_interval(s, "time_advance", "state");
-            const auto period =
-                time_i_t::closed(time_t::from_scaled(997), time_t::from_scaled(1005));
-            const auto raw = period - s; // { l - e | l∈period, e∈s }
+            const auto period = time_i_t::closed(0.997, 1.005);
+            const auto raw    = period - s; // { l - e | l∈period, e∈s }
             return clamp_time_interval(raw);
         }
 
@@ -104,9 +98,9 @@ namespace cadmia::iadevs {
         static void validate_state_interval(const state_i_t &in, const char *where,
                                             const char *name) {
             if (in.is_empty())
-                return; // empty carries its own semantics
-            const state_t z{};
-            const state_t ub = state_t::from_scaled(1005);
+                return;
+            constexpr state_t z  = 0.0;
+            constexpr state_t ub = 1.005;
             if (in.lower < z || in.upper < z || in.lower > ub || in.upper > ub) {
                 throw std::invalid_argument(std::string(where) + ": " + name +
                                             " outside [0, 1.005]");

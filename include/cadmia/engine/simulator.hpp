@@ -132,35 +132,17 @@ namespace cadmia::engine {
             // Compute local elapsed time interval t_local per Algorithm 1
             time_i_t t_local{};
 
-            // Upper end: t.upper - t_next.lower
-            // Handle infinities similarly to interval subtraction endpoint logic
-            if (t.upper_inf_sign == +1 || t_next_.lower_inf_sign == -1) {
-                t_local.upper_inf_sign = +1;
-            } else if (t.upper_inf_sign == -1 || t_next_.lower_inf_sign == +1) {
-                t_local.upper_inf_sign = -1;
-            } else {
-                // Both finite
-                t_local.upper          = t.upper - t_next_.lower;
-                t_local.upper_inf_sign = 0;
-            }
+            // Upper end: t.upper - t_next.lower. Infinity propagates via T arithmetic.
+            t_local.upper        = t.upper - t_next_.lower;
             t_local.upper_closed = t.upper_closed && !t_next_.lower_closed;
 
             // Lower end depends on overlap with t_last_
             if (t.intersects(t_last_)) {
-                // Confluent case: event coincides with last event time
-                t_local.lower          = time_t{};
-                t_local.lower_inf_sign = 0;
-                t_local.lower_closed   = true;
+                // Confluent: event coincides with last event time — clamp to 0
+                t_local.lower        = time_t{};
+                t_local.lower_closed = true;
             } else {
-                // t.lower - t_last.upper
-                if (t.lower_inf_sign == +1 || t_last_.upper_inf_sign == -1) {
-                    t_local.lower_inf_sign = +1;
-                } else if (t.lower_inf_sign == -1 || t_last_.upper_inf_sign == +1) {
-                    t_local.lower_inf_sign = -1;
-                } else {
-                    t_local.lower          = t.lower - t_last_.upper;
-                    t_local.lower_inf_sign = 0;
-                }
+                t_local.lower        = t.lower - t_last_.upper;
                 t_local.lower_closed = t.lower_closed && t_last_.upper_closed;
             }
 
@@ -188,14 +170,11 @@ namespace cadmia::engine {
         void advance_t_next_past_limit(const time_i_t &limit) override {
             if (t_next_.is_empty() || !t_next_.intersects(limit))
                 return;
-            if (limit.is_punctual() &&
-                time_i_t::endpoint_equal(t_next_.lower, t_next_.lower_inf_sign, limit.lower,
-                                         limit.lower_inf_sign)) {
+            if (limit.is_punctual() && t_next_.lower == limit.lower) {
                 t_next_.lower_closed = false;
             } else if (!limit.is_punctual()) {
-                t_next_.lower          = limit.upper;
-                t_next_.lower_inf_sign = limit.upper_inf_sign;
-                t_next_.lower_closed   = !limit.upper_closed;
+                t_next_.lower        = limit.upper;
+                t_next_.lower_closed = !limit.upper_closed;
             }
         }
 
