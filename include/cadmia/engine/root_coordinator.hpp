@@ -34,6 +34,7 @@
 #include <deque>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -180,13 +181,11 @@ namespace cadmia::engine {
         }
 
       private:
-        // Format an endpoint value as string. Uses raw_value() for decimal types,
-        // falls back to std::to_string for arithmetic types.
+        // Format an endpoint value as string via operator<<.
         template <typename U> static std::string val_str(const U &v) {
-            if constexpr (requires { v.raw_value(); })
-                return std::to_string(v.raw_value());
-            else
-                return std::to_string(v);
+            std::ostringstream oss;
+            oss << v;
+            return oss.str();
         }
 
         static std::string interval_str(const time_i_t &iv) {
