@@ -200,21 +200,23 @@ if(CLANG_FORMAT)
         ${FORMAT_PATTERNS}
     )
 
-    # Target: format - Apply formatting in-place
-    add_custom_target(format
-        COMMAND ${CLANG_FORMAT} -i -style=file ${CADMIUM_FORMAT_FILES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Applying clang-format to project sources"
-        VERBATIM
-    )
+    if(PROJECT_IS_TOP_LEVEL)
+        # Target: format - Apply formatting in-place
+        add_custom_target(format
+            COMMAND ${CLANG_FORMAT} -i -style=file ${CADMIUM_FORMAT_FILES}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Applying clang-format to project sources"
+            VERBATIM
+        )
 
-    # Target: check-format - Verify formatting compliance
-    add_custom_target(check-format
-        COMMAND ${CLANG_FORMAT} -style=file --dry-run -Werror ${CADMIUM_FORMAT_FILES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Checking clang-format compliance"
-        VERBATIM
-    )
+        # Target: check-format - Verify formatting compliance
+        add_custom_target(check-format
+            COMMAND ${CLANG_FORMAT} -style=file --dry-run -Werror ${CADMIUM_FORMAT_FILES}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Checking clang-format compliance"
+            VERBATIM
+        )
+    endif()
 else()
     message(STATUS "clang-format not found; 'format' and 'check-format' targets unavailable")
 endif()
