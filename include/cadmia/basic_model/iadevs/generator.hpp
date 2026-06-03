@@ -54,8 +54,8 @@ namespace cadmia::iadevs {
         using input_i_t  = cadmia::modeling::interval<input_t>;
         using output_i_t = cadmia::modeling::interval<output_t>;
 
-        // Time is decimal with 3 fractional digits (milliseconds resolution).
-        static constexpr int default_rounding_granularity_units = 100; // e.g., 100 → 0.01
+        static constexpr int default_rounding_granularity_units =
+            100; // e.g., 100 → 0.01 time units
 
         // Approximated functions (operate on intervals), matching Section 4.
         // internal(s) = [0,0] (validate input is within bounds even if ignored)

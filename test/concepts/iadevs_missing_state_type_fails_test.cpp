@@ -4,19 +4,17 @@
  */
 
 #include <cadmia/concepts/iadevs_atomic_model.hpp>
-#include <cadmia/modeling/decimal.hpp>
 #include <cadmia/modeling/interval.hpp>
 
 // Invalid model: missing state_t type alias
 class invalid_model_no_state_type {
   public:
-    using dec3            = cadmia::modeling::decimal<3>;
-    using time_interval_t = cadmia::modeling::interval<dec3>;
+    using time_interval_t = cadmia::modeling::interval<float>;
     // Missing state_t!
-    using input_value_t  = cadmia::modeling::interval<dec3>;
-    using output_value_t = cadmia::modeling::interval<dec3>;
+    using input_value_t  = cadmia::modeling::interval<float>;
+    using output_value_t = cadmia::modeling::interval<float>;
 
-    using actual_state = cadmia::modeling::interval<dec3>;
+    using actual_state = cadmia::modeling::interval<float>;
 
     struct q_interval {
         actual_state state;
