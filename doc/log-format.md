@@ -18,7 +18,7 @@ template <typename T> struct LogEntry {
     std::optional<std::string> parent_branch;
     std::string time;                       // interval string, e.g. "[100, 200]"
     std::string component;                  // engine name; empty for "skip" entries
-    std::optional<std::string> output;      // str(output) if produced, nullopt otherwise
+    std::optional<std::string> output;      // "\"<output>\"" if produced, nullopt otherwise
     std::optional<std::any> raw_output;     // typed output value for any_cast by callers
 };
 ```
@@ -33,8 +33,8 @@ template <typename T> struct LogEntry {
 | `parent_branch` | `optional<string>`        | Branch ID of the parent when this branch was forked. `nullopt` for the root branch `"0"`. |
 | `time`          | `string`                  | The limit interval used for this step, formatted as an interval string (see below). |
 | `component`     | `string`                  | Name of the engine that fired. Empty string for `"skip"` entries. |
-| `output`        | `optional<string>`        | String representation of the component output if produced; `nullopt` if passive or no output. |
-| `raw_output`    | `optional<any>`           | Typed output value (the raw `std::any` returned by the model's `output()` function). Use `std::any_cast<YourType>` to recover the value. `nullopt` when `output` is `nullopt`. |
+| `output`        | `optional<string>`        | `"<output>"` (literal marker) if the component produced output this step; `nullopt` if passive or no output. Use `raw_output` to retrieve the actual value. |
+| `raw_output`    | `optional<any>`           | Typed output value (`std::any` from the model's `output()` function). Use `std::any_cast<YourType>` to recover the value. `nullopt` when `output` is `nullopt`. |
 
 ## Time Representation
 
