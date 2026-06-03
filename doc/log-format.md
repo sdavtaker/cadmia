@@ -14,11 +14,12 @@ execution order as a separate branch, so there is no single linear event stream 
 template <typename T> struct LogEntry {
     int step{};
     std::string branch;
-    std::string kind;                  // "atomic" | "coupled" | "skip"
+    std::string kind;                       // "atomic" | "coupled" | "skip"
     std::optional<std::string> parent_branch;
-    std::string time;                  // interval string, e.g. "[100, 200]"
-    std::string component;             // engine name; empty for "skip" entries
-    std::optional<std::string> output; // "<output>" if output produced, nullopt otherwise
+    std::string time;                       // interval string, e.g. "[100, 200]"
+    std::string component;                  // engine name; empty for "skip" entries
+    std::optional<std::string> output;      // str(output) if produced, nullopt otherwise
+    std::optional<std::any> raw_output;     // typed output value for any_cast by callers
 };
 ```
 
@@ -32,14 +33,17 @@ template <typename T> struct LogEntry {
 | `parent_branch` | `optional<string>`        | Branch ID of the parent when this branch was forked. `nullopt` for the root branch `"0"`. |
 | `time`          | `string`                  | The limit interval used for this step, formatted as an interval string (see below). |
 | `component`     | `string`                  | Name of the engine that fired. Empty string for `"skip"` entries. |
-| `output`        | `optional<string>`        | `"<output>"` if the component produced output during this step; `nullopt` if it was passive or no output was produced. |
+| `output`        | `optional<string>`        | String representation of the component output if produced; `nullopt` if passive or no output. |
+| `raw_output`    | `optional<any>`           | Typed output value (the raw `std::any` returned by the model's `output()` function). Use `std::any_cast<YourType>` to recover the value. `nullopt` when `output` is `nullopt`. |
 
 ## Time Representation
 
 cadmia uses interval arithmetic for time. Every time value is an `interval<T>` with:
 - A lower bound and an upper bound (each a value of type `T`)
 - Closed/open endpoint flags (`lower_closed`, `upper_closed`)
-- Infinity signs for each endpoint (`-1` = −∞, `0` = finite, `+1` = +∞)
+- Infinity is carried in-band: `std::numeric_limits<T>::infinity()` (and its negation) are
+  used as bound values to represent ±∞. For types where `has_infinity == false` (e.g. `int`),
+  intervals are always finite.
 
 The `time` field is formatted by `RootCoordinator` as:
 
@@ -52,8 +56,8 @@ The `time` field is formatted by `RootCoordinator` as:
 [lower, +inf)    — upper is +∞
 ```
 
-For `decimal<N>` underlying types, the bound values are rendered via `raw_value()` (the
-underlying integer); for plain arithmetic types, `std::to_string` is used.
+Bound values are formatted via `operator<<` (through `std::ostringstream`); `-inf` and
+`+inf` are emitted literally when `is_lower_infinite()` / `is_upper_infinite()` is true.
 
 **Example intervals:**
 - `[100, 200]` — both bounds finite and closed
