@@ -18,7 +18,7 @@ template <typename T> struct LogEntry {
     std::optional<std::string> parent_branch;
     std::string time;                       // interval string, e.g. "[100, 200]"
     std::string component;                  // engine name; empty for "skip" entries
-    std::optional<std::string> output;      // "\"<output>\"" if produced, nullopt otherwise
+    std::optional<std::string> output;      // "<output>" if produced, nullopt otherwise
     std::optional<std::any> raw_output;     // typed output value for any_cast by callers
 };
 ```
