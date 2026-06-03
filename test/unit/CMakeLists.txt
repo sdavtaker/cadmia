@@ -11,7 +11,6 @@ set(TEST_SOURCES
     iadevs_processor_model_test.cpp
     iadevs_processor_simulator_test.cpp
     modeling_coupled_test.cpp
-    modeling_decimal_test.cpp
     modeling_interval_test.cpp
 )
 

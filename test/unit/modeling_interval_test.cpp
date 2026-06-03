@@ -25,14 +25,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cadmia/modeling/decimal.hpp>
 #include <cadmia/modeling/interval.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 #include <limits>
 #include <stdexcept>
-
-using cadmia::modeling::decimal;
 
 // Convenience sentinels for double-based infinity tests
 static const double D_POS_INF = std::numeric_limits<double>::infinity();
@@ -96,11 +93,10 @@ TEST_CASE("interval throws when hi < lo", "[interval]") {
     REQUIRE_THROWS_AS((cadmia::modeling::interval<int>::open(5, 4)), std::invalid_argument);
 }
 
-TEST_CASE("interval works with decimal type", "[interval][decimal]") {
-    using d3      = decimal<3>;
-    const auto a  = d3::from_whole(1);     // 1.000
-    const auto b  = d3::from_scaled(2500); // 2.500
-    const auto iv = cadmia::modeling::interval<d3>::closed(a, b);
+TEST_CASE("interval works with float type", "[interval][float]") {
+    const auto a  = 1.0f;
+    const auto b  = 2.5f;
+    const auto iv = cadmia::modeling::interval<float>::closed(a, b);
     REQUIRE_FALSE(iv.is_empty());
     REQUIRE(iv.lower == a);
     REQUIRE(iv.upper == b);
