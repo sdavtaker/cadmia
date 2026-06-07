@@ -132,9 +132,9 @@ namespace cadmia::engine {
             // Compute local elapsed time interval t_local per Algorithm 1
             time_i_t t_local{};
 
-            // Upper end: t.upper - t_next.lower. Infinity propagates via T arithmetic.
-            t_local.upper        = t.upper - t_next_.lower;
-            t_local.upper_closed = t.upper_closed && !t_next_.lower_closed;
+            // Upper end: t.upper - t_last.lower. Infinity propagates via T arithmetic.
+            t_local.upper        = t.upper - t_last_.lower;
+            t_local.upper_closed = t.upper_closed && t_last_.lower_closed;
 
             // Lower end depends on overlap with t_last_
             if (t.intersects(t_last_)) {
