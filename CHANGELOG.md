@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-06-07
+
+### Fixed
+- `simulator::x()`: elapsed time upper bound used `t_next_.lower` instead of
+  `t_last_.lower`, producing a negative upper when a model received a second external
+  event at a time interval overlapping its current `t_last`.  Now correctly computes
+  `t.upper - t_last_.lower` with closedness `t.upper_closed && t_last_.lower_closed`,
+  matching Algorithm 1 of the IA-DEVS specification.
+
 ## [0.4.0] - 2026-06-03
 
 ### Added
