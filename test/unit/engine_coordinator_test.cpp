@@ -205,22 +205,18 @@ TEST_CASE("Coordinator advance_t_next_past_limit opens lower bound at punctual l
     CHECK_FALSE(coord.t_next().lower_closed);
 }
 
-// ─── punctual defer branch ────────────────────────────────────────────────────
+// ─── punctual limit: exactly one branch ───────────────────────────────────────
 
 TEST_CASE(
-    "compute_branches generates defer-then-fire branch when SELECT picks engine with wider t_next",
-    "[coordinator][defer]") {
-    // Construct a two-engine coupled model where:
-    //   "gen_a" has t_next = [997, 1005]  (non-punctual — generator's default)
-    //   "gen_b" has t_next = [1000, 1000] (punctual — we build a custom initial state)
-    // SELECT always picks gen_a ("a" < "b" lexicographically).
-    // When the limit is punctual [1000, 1000], gen_a's wider t_next straddles it, so
-    // compute_branches should produce TWO branches:
-    //   1. gen_a fires at [1000, 1000]
-    //   2. defer gen_a + gen_b fires at [1000, 1000]
+    "compute_branches returns exactly one branch for punctual limit — SELECT fires, others wait",
+    "[coordinator]") {
+    // Two generators, both with t_next = [997, 1005] (non-punctual).
+    // Query at a punctual limit [1000, 1000] — both intersect it.
+    // SELECT picks gen_a (lexicographically first).
+    // Correct behaviour: exactly ONE branch (gen_a fires). gen_b is NOT branched or deferred;
+    // it remains scheduled and will fire when compute_branches is called again.
     const T v1000 = 1.0;
 
-    // gen_a: state_t=double, initial s0=[0,0], initial t=[0,0] → t_next=[0.997,1.005]
     auto gen_a_s0 = time_i_t::closed(zero, zero);
     auto gen_b_s0 = time_i_t::closed(zero, zero);
     auto ti       = time_i_t::closed(zero, zero);
@@ -237,26 +233,14 @@ TEST_CASE(
     coordinator<T> coord(model);
     coord.init(ti);
 
-    // Both generators start with t_next = [997, 1005] — advance gen_b to punctual [1000, 1000].
-    // We do this by fabricating a punctual limit at [1000, 1000] and advancing gen_b's t_next
-    // to that lower bound (open), then we directly probe compute_branches.
-    // Easier: use a punctual limit [1000, 1000] as the query t.
     auto punctual_t = time_i_t::closed(v1000, v1000);
+    auto branches   = coord.compute_branches(punctual_t);
 
-    auto branches = coord.compute_branches(punctual_t);
+    REQUIRE(branches.size() == 1);
+    REQUIRE(branches[0].engine_name == "gen_a");
+    REQUIRE(branches[0].defer_engine.empty());
 
-    // Expect exactly 2 branches: one where gen_a fires, one where gen_a is deferred & gen_b fires.
-    REQUIRE(branches.size() == 2);
-
-    // One branch must have engine_name = "gen_a" and no defer
-    bool found_a_fires         = false;
-    bool found_b_fires_defer_a = false;
-    for (const auto &b : branches) {
-        if (b.engine_name == "gen_a" && b.defer_engine.empty())
-            found_a_fires = true;
-        if (b.engine_name == "gen_b" && b.defer_engine == "gen_a")
-            found_b_fires_defer_a = true;
-    }
-    CHECK(found_a_fires);
-    CHECK(found_b_fires_defer_a);
+    // After firing gen_a, gen_b must still be active (not lost).
+    coord.execute_branch(branches[0]);
+    REQUIRE_FALSE(coord.engines().at("gen_b")->t_next().is_empty());
 }

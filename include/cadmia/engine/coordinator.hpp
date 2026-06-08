@@ -183,6 +183,8 @@ namespace cadmia::engine {
             }
 
             if (limit.is_punctual()) {
+                // Punctual limit: time is known exactly — the selected engine fires, no
+                // skip or defer branch. Others remain scheduled and fire in subsequent steps.
                 std::unordered_set<std::string> candidates;
                 for (const auto &name : imminents) {
                     if (engines_.at(name)->t_next().intersects(limit))
@@ -192,22 +194,7 @@ namespace cadmia::engine {
                 if (candidates.find(chosen) == candidates.end())
                     throw std::logic_error("select function returned '" + chosen +
                                            "' which is not among the imminent candidates");
-
-                std::vector<BranchAction<T>> branches;
-                const auto &chosen_tn = engines_.at(chosen)->t_next();
-                branches.push_back({.engine_name = chosen, .limit = limit});
-                if (!interval_eq(limit, chosen_tn)) {
-                    auto remaining = candidates;
-                    remaining.erase(chosen);
-                    if (!remaining.empty()) {
-                        const std::string next_chosen = model_->select()(remaining);
-                        branches.push_back(
-                            {.engine_name = next_chosen, .limit = limit, .defer_engine = chosen});
-                    } else {
-                        branches.push_back({.engine_name = "", .limit = limit});
-                    }
-                }
-                return branches;
+                return {{.engine_name = chosen, .limit = limit}};
             }
 
             std::vector<BranchAction<T>> branches;
