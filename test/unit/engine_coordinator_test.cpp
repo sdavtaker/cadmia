@@ -205,16 +205,16 @@ TEST_CASE("Coordinator advance_t_next_past_limit opens lower bound at punctual l
     CHECK_FALSE(coord.t_next().lower_closed);
 }
 
-// ─── punctual limit: exactly one branch ───────────────────────────────────────
+// ─── punctual defer branch ────────────────────────────────────────────────────
 
 TEST_CASE(
-    "compute_branches returns exactly one branch for punctual limit — SELECT fires, others wait",
-    "[coordinator]") {
-    // Two generators, both with t_next = [997, 1005] (non-punctual).
-    // Query at a punctual limit [1000, 1000] — both intersect it.
-    // SELECT picks gen_a (lexicographically first).
-    // Correct behaviour: exactly ONE branch (gen_a fires). gen_b is NOT branched or deferred;
-    // it remains scheduled and will fire when compute_branches is called again.
+    "compute_branches generates defer-then-fire branch when SELECT picks engine with wider t_next",
+    "[coordinator][defer]") {
+    // Algorithm 3 lines 10-19: two engines both intersect punctual limit [1000, 1000].
+    // gen_a t_next = [997, 1005] (wider than limit); gen_b t_next = [997, 1005] (same).
+    // SELECT picks gen_a. Since limit ≠ gen_a.t_next, a second branch is produced:
+    //   branch 1: gen_a fires at [1000, 1000]
+    //   branch 2: gen_a is deferred past [1000, 1000], gen_b fires at [1000, 1000]
     const T v1000 = 1.0;
 
     auto gen_a_s0 = time_i_t::closed(zero, zero);
@@ -236,11 +236,31 @@ TEST_CASE(
     auto punctual_t = time_i_t::closed(v1000, v1000);
     auto branches   = coord.compute_branches(punctual_t);
 
-    REQUIRE(branches.size() == 1);
-    REQUIRE(branches[0].engine_name == "gen_a");
-    REQUIRE(branches[0].defer_engine.empty());
+    REQUIRE(branches.size() == 2);
 
-    // After firing gen_a, gen_b must still be active (not lost).
-    coord.execute_branch(branches[0]);
-    REQUIRE_FALSE(coord.engines().at("gen_b")->t_next().is_empty());
+    bool found_a_fires         = false;
+    bool found_b_fires_defer_a = false;
+    for (const auto &b : branches) {
+        if (b.engine_name == "gen_a" && b.defer_engine.empty())
+            found_a_fires = true;
+        if (b.engine_name == "gen_b" && b.defer_engine == "gen_a")
+            found_b_fires_defer_a = true;
+    }
+    REQUIRE(found_a_fires);
+    REQUIRE(found_b_fires_defer_a);
+
+    // Execute the defer branch: gen_a must be advanced past [1000, 1000].
+    // Before the fix, advance_t_next_past_limit left gen_a unchanged when
+    // t_next_.lower (0.997) < limit.lower (1.0). After the fix it becomes (1.0, 1.005].
+    for (const auto &b : branches) {
+        if (b.defer_engine == "gen_a") {
+            auto coord2_base = coord.clone();
+            auto *coord2     = dynamic_cast<coordinator<T> *>(coord2_base.get());
+            REQUIRE(coord2 != nullptr);
+            coord2->execute_branch(b);
+            const auto &gen_a_tn = coord2->engines().at("gen_a")->t_next();
+            REQUIRE(gen_a_tn.lower == v1000);
+            REQUIRE_FALSE(gen_a_tn.lower_closed); // strictly after 1000ms
+        }
+    }
 }

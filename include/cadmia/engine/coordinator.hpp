@@ -183,8 +183,10 @@ namespace cadmia::engine {
             }
 
             if (limit.is_punctual()) {
-                // Punctual limit: time is known exactly — the selected engine fires, no
-                // skip or defer branch. Others remain scheduled and fire in subsequent steps.
+                // Algorithm 3 lines 10-19: SELECT fires on the main path. When the selected
+                // engine's t_next is wider than the punctual limit, a second branch is also
+                // produced (child in the paper) where the selected engine is deferred past
+                // the limit and the next candidate fires instead.
                 std::unordered_set<std::string> candidates;
                 for (const auto &name : imminents) {
                     if (engines_.at(name)->t_next().intersects(limit))
@@ -194,7 +196,22 @@ namespace cadmia::engine {
                 if (candidates.find(chosen) == candidates.end())
                     throw std::logic_error("select function returned '" + chosen +
                                            "' which is not among the imminent candidates");
-                return {{.engine_name = chosen, .limit = limit}};
+
+                std::vector<BranchAction<T>> branches;
+                const auto &chosen_tn = engines_.at(chosen)->t_next();
+                branches.push_back({.engine_name = chosen, .limit = limit});
+                if (!interval_eq(limit, chosen_tn)) {
+                    auto remaining = candidates;
+                    remaining.erase(chosen);
+                    if (!remaining.empty()) {
+                        const std::string next_chosen = model_->select()(remaining);
+                        branches.push_back(
+                            {.engine_name = next_chosen, .limit = limit, .defer_engine = chosen});
+                    } else {
+                        branches.push_back({.engine_name = "", .limit = limit});
+                    }
+                }
+                return branches;
             }
 
             std::vector<BranchAction<T>> branches;
