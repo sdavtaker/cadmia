@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-06-07
+
+### Fixed
+- `simulator::advance_t_next_past_limit()`: for a punctual limit `[L, L]`, the
+  function did nothing when `t_next.lower < L`, leaving the deferred engine's
+  `t_next` unchanged and still including `L`.  Now unconditionally sets
+  `t_next.lower = L` (open) for any punctual limit, matching Algorithm 3 line 15
+  of VWD21 (`E_next.t_next = E_next.t_next − limit`).
+
 ## [0.4.1] - 2026-06-07
 
 ### Fixed
