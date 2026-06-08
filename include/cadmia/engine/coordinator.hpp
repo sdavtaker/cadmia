@@ -183,6 +183,10 @@ namespace cadmia::engine {
             }
 
             if (limit.is_punctual()) {
+                // Algorithm 3 lines 10-19: SELECT fires on the main path. When the selected
+                // engine's t_next is wider than the punctual limit, a second branch is also
+                // produced (child in the paper) where the selected engine is deferred past
+                // the limit and the next candidate fires instead.
                 std::unordered_set<std::string> candidates;
                 for (const auto &name : imminents) {
                     if (engines_.at(name)->t_next().intersects(limit))

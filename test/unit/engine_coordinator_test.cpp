@@ -210,17 +210,13 @@ TEST_CASE("Coordinator advance_t_next_past_limit opens lower bound at punctual l
 TEST_CASE(
     "compute_branches generates defer-then-fire branch when SELECT picks engine with wider t_next",
     "[coordinator][defer]") {
-    // Construct a two-engine coupled model where:
-    //   "gen_a" has t_next = [997, 1005]  (non-punctual — generator's default)
-    //   "gen_b" has t_next = [1000, 1000] (punctual — we build a custom initial state)
-    // SELECT always picks gen_a ("a" < "b" lexicographically).
-    // When the limit is punctual [1000, 1000], gen_a's wider t_next straddles it, so
-    // compute_branches should produce TWO branches:
-    //   1. gen_a fires at [1000, 1000]
-    //   2. defer gen_a + gen_b fires at [1000, 1000]
+    // Algorithm 3 lines 10-19: two engines both intersect punctual limit [1000, 1000].
+    // gen_a t_next = [997, 1005] (wider than limit); gen_b t_next = [997, 1005] (same).
+    // SELECT picks gen_a. Since limit ≠ gen_a.t_next, a second branch is produced:
+    //   branch 1: gen_a fires at [1000, 1000]
+    //   branch 2: gen_a is deferred past [1000, 1000], gen_b fires at [1000, 1000]
     const T v1000 = 1.0;
 
-    // gen_a: state_t=double, initial s0=[0,0], initial t=[0,0] → t_next=[0.997,1.005]
     auto gen_a_s0 = time_i_t::closed(zero, zero);
     auto gen_b_s0 = time_i_t::closed(zero, zero);
     auto ti       = time_i_t::closed(zero, zero);
@@ -237,18 +233,11 @@ TEST_CASE(
     coordinator<T> coord(model);
     coord.init(ti);
 
-    // Both generators start with t_next = [997, 1005] — advance gen_b to punctual [1000, 1000].
-    // We do this by fabricating a punctual limit at [1000, 1000] and advancing gen_b's t_next
-    // to that lower bound (open), then we directly probe compute_branches.
-    // Easier: use a punctual limit [1000, 1000] as the query t.
     auto punctual_t = time_i_t::closed(v1000, v1000);
+    auto branches   = coord.compute_branches(punctual_t);
 
-    auto branches = coord.compute_branches(punctual_t);
-
-    // Expect exactly 2 branches: one where gen_a fires, one where gen_a is deferred & gen_b fires.
     REQUIRE(branches.size() == 2);
 
-    // One branch must have engine_name = "gen_a" and no defer
     bool found_a_fires         = false;
     bool found_b_fires_defer_a = false;
     for (const auto &b : branches) {
@@ -257,6 +246,21 @@ TEST_CASE(
         if (b.engine_name == "gen_b" && b.defer_engine == "gen_a")
             found_b_fires_defer_a = true;
     }
-    CHECK(found_a_fires);
-    CHECK(found_b_fires_defer_a);
+    REQUIRE(found_a_fires);
+    REQUIRE(found_b_fires_defer_a);
+
+    // Execute the defer branch: gen_a must be advanced past [1000, 1000].
+    // Before the fix, advance_t_next_past_limit left gen_a unchanged when
+    // t_next_.lower (0.997) < limit.lower (1.0). After the fix it becomes (1.0, 1.005].
+    for (const auto &b : branches) {
+        if (b.defer_engine == "gen_a") {
+            auto coord2_base = coord.clone();
+            auto *coord2     = dynamic_cast<coordinator<T> *>(coord2_base.get());
+            REQUIRE(coord2 != nullptr);
+            coord2->execute_branch(b);
+            const auto &gen_a_tn = coord2->engines().at("gen_a")->t_next();
+            REQUIRE(gen_a_tn.lower == v1000);
+            REQUIRE_FALSE(gen_a_tn.lower_closed); // strictly after 1000ms
+        }
+    }
 }

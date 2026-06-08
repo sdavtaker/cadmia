@@ -170,9 +170,13 @@ namespace cadmia::engine {
         void advance_t_next_past_limit(const time_i_t &limit) override {
             if (t_next_.is_empty() || !t_next_.intersects(limit))
                 return;
-            if (limit.is_punctual() && t_next_.lower == limit.lower) {
+            if (limit.is_punctual()) {
+                // Algorithm 3 line 15: E_next.t_next = E_next.t_next − limit.
+                // Whether t_next_.lower equals limit.lower or is strictly below it,
+                // the result is the same: advance the lower bound to limit.lower (open).
+                t_next_.lower        = limit.lower;
                 t_next_.lower_closed = false;
-            } else if (!limit.is_punctual()) {
+            } else {
                 t_next_.lower        = limit.upper;
                 t_next_.lower_closed = !limit.upper_closed;
             }
