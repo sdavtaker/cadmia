@@ -4,6 +4,7 @@
 # Explicitly list test sources (no globbing)
 set(TEST_SOURCES
     engine_coordinator_test.cpp
+    engine_log_test.cpp
     engine_root_coordinator_test.cpp
     iadevs_accumulator_model_test.cpp
     iadevs_counter_model_test.cpp
