@@ -128,6 +128,48 @@ TEST_CASE("write_ndjson writes one line per entry", "[log]") {
     }
 }
 
+TEST_CASE("to_ndjson dedup entry carries merged_into field", "[log]") {
+    cadmia::engine::LogEntry<T> e;
+    e.step          = 2;
+    e.branch        = "0.1";
+    e.kind          = "dedup";
+    e.parent_branch = std::string{"0"};
+    e.time          = "[0.997, 1.005]";
+    e.merged_into   = std::string{"0.0"};
+
+    const std::string line = cadmia::log::to_ndjson(e);
+
+    CHECK(line.find(R"("kind":"dedup")") != std::string::npos);
+    CHECK(line.find(R"("merged_into":"0.0")") != std::string::npos);
+    CHECK(line.find(R"("component")") == std::string::npos);
+    CHECK(line.find(R"("output")") == std::string::npos);
+}
+
+TEST_CASE("dedup entries appear in log when dual-gen branches converge", "[log]") {
+    CoupledModel<T>::component_map comps;
+    comps.emplace("gen1", make_atomic_component<generator>(gen_state(), zero_i()));
+    comps.emplace("gen2", make_atomic_component<generator>(gen_state(), zero_i()));
+    CoupledModel<T>::influencer_map infl;
+    infl["gen1"] = {};
+    infl["gen2"] = {};
+    auto model   = std::make_shared<const CoupledModel<T>>(
+        std::move(comps), std::move(infl), CoupledModel<T>::translation_map{}, first_select, zero);
+
+    cadmia::engine::RootCoordinator<T> rc;
+    auto log = rc.simulate(*model, zero_i(), /*max_steps=*/20, /*max_branches=*/4);
+
+    const bool has_dedup =
+        std::any_of(log.begin(), log.end(), [](const auto &e) { return e.kind == "dedup"; });
+    REQUIRE(has_dedup);
+
+    for (const auto &e : log) {
+        if (e.kind == "dedup") {
+            CHECK(e.merged_into.has_value());
+            CHECK_FALSE(e.merged_into->empty());
+        }
+    }
+}
+
 TEST_CASE("write_ndjson end-to-end with real simulation", "[log]") {
     CoupledModel<T>::component_map comps;
     comps.emplace("gen", make_atomic_component<generator>(gen_state(), zero_i()));

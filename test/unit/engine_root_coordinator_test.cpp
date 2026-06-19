@@ -124,3 +124,13 @@ TEST_CASE("RootCoordinator throws SimulationLimitError when max_branches exceede
     REQUIRE_THROWS_AS(rc.simulate(model, zero_i(), /*max_steps=*/1000, /*max_branches=*/1),
                       SimulationLimitError);
 }
+
+TEST_CASE("RootCoordinator deduplicates converging branches in dual-gen", "[root_coordinator]") {
+    // After the initial fork (gen1 fires vs gen2 fires), each branch fires the other
+    // generator and reaches an identical coordinator state. Without deduplication the
+    // queue grows exponentially; with it the duplicate branch is removed and the
+    // simulation completes within a tight branch budget.
+    RootCoordinator<T> rc;
+    auto model = dual_gen_model();
+    REQUIRE_NOTHROW(rc.simulate(model, zero_i(), /*max_steps=*/20, /*max_branches=*/4));
+}

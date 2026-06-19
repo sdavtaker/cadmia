@@ -112,6 +112,13 @@ namespace cadmia::engine {
          * Deep-copy this engine. Used by RootCoordinator for BFS branch isolation.
          */
         [[nodiscard]] virtual std::unique_ptr<IADEVSEngine<T>> clone() const = 0;
+
+        /**
+         * Structural equality: true iff other has the same concrete type and identical
+         * state, t_last, and t_next. Used by RootCoordinator to deduplicate BFS branches
+         * whose futures are deterministic and identical.
+         */
+        [[nodiscard]] virtual bool engine_equals(const IADEVSEngine<T> &other) const = 0;
     };
 
 } // namespace cadmia::engine

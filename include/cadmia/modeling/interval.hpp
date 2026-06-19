@@ -232,6 +232,13 @@ namespace cadmia::modeling {
             return r;
         }
 
+        // Structural equality: same lower, upper, and closure flags.
+        [[nodiscard]] friend constexpr bool operator==(const interval &a,
+                                                       const interval &b) noexcept {
+            return endpoint_equal(a.lower, b.lower) && endpoint_equal(a.upper, b.upper) &&
+                   a.lower_closed == b.lower_closed && a.upper_closed == b.upper_closed;
+        }
+
         // Interval subtraction: {l - e | l ∈ L, e ∈ E}.
         // For floating-point T, directed rounding maintains the outward-rounding invariant.
         friend interval operator-(const interval &l, const interval &e) {

@@ -55,12 +55,13 @@ namespace cadmia::engine {
     template <typename T> struct LogEntry {
         int step{};
         std::string branch;
-        std::string kind; // "atomic" | "coupled" | "skip"
+        std::string kind; // "atomic" | "coupled" | "skip" | "dedup"
         std::optional<std::string> parent_branch;
         std::string time;                   // str(limit interval)
-        std::string component;              // engine_name, empty for skip
-        std::optional<std::string> output;  // str(component_output), nullopt for skip/passive
+        std::string component;              // engine_name, empty for skip/dedup
+        std::optional<std::string> output;  // str(component_output), nullopt for skip/passive/dedup
         std::optional<std::any> raw_output; // typed output value for caller inspection
+        std::optional<std::string> merged_into; // branch id that subsumes this branch (dedup only)
     };
 
     /**
@@ -104,6 +105,33 @@ namespace cadmia::engine {
             while (!queue.empty()) {
                 if (total_steps >= max_steps)
                     break;
+
+                // Deduplicate: remove later entries whose coordinator state is identical
+                // to the head. Two branches with the same state have deterministic,
+                // identical futures — keeping both is redundant work.
+                // Emit a "dedup" log entry for each removed branch so the causality
+                // graph records that its future is subsumed by the surviving branch.
+                if (queue.size() > 1) {
+                    const auto &head    = *queue.front().coordinator;
+                    const auto &head_id = queue.front().branch_id;
+                    const auto head_t   = head.t_next();
+                    for (auto it = std::next(queue.begin()); it != queue.end();) {
+                        if (head.engine_equals(*it->coordinator)) {
+                            log.push_back(log_t{.step          = it->step,
+                                                .branch        = it->branch_id,
+                                                .kind          = "dedup",
+                                                .parent_branch = it->parent_branch_id,
+                                                .time          = interval_str(head_t),
+                                                .component     = "",
+                                                .output        = std::nullopt,
+                                                .raw_output    = std::nullopt,
+                                                .merged_into   = head_id});
+                            it = queue.erase(it);
+                        } else {
+                            ++it;
+                        }
+                    }
+                }
 
                 // Passive — discard
                 if (queue.front().coordinator->t_next().is_empty()) {
@@ -218,6 +246,7 @@ namespace cadmia::engine {
                 .component     = action.engine_name,
                 .output        = comp_out ? std::optional<std::string>{"<output>"} : std::nullopt,
                 .raw_output    = comp_out,
+                .merged_into   = std::nullopt,
             };
         }
     };

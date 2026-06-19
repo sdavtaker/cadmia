@@ -197,6 +197,11 @@ namespace cadmia::engine {
             return std::make_unique<simulator<M>>(*this);
         }
 
+        [[nodiscard]] bool engine_equals(const IADEVSEngine<time_t> &other) const override {
+            const auto *o = dynamic_cast<const simulator<M> *>(&other);
+            return o && state_ == o->state_ && t_last_ == o->t_last_ && t_next_ == o->t_next_;
+        }
+
       private:
         /**
          * Check if interval a is a subset of interval b (a ⊆ b).
