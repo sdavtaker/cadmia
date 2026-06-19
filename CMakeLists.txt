@@ -10,7 +10,7 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 endif()
 
 project(CadmIA
-    VERSION 0.4.2
+    VERSION 0.4.3
     DESCRIPTION "A modern C++23 header-only library for IA-DEVS simulation"
     LANGUAGES CXX
 )
