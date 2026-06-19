@@ -87,9 +87,10 @@ namespace cadmia::log {
      *   branch       — branch identifier (e.g. "0.1.2")
      *   parent_branch — parent branch id, omitted for root
      *   sim_time     — time interval string (e.g. "[0.997, 1.005]")
-     *   kind         — "atomic", "coupled", or "skip"
-     *   component    — engine name; omitted for skip branches
+     *   kind         — "atomic", "coupled", "skip", or "dedup"
+     *   component    — engine name; omitted for skip/dedup branches
      *   output       — output string; omitted when no output
+     *   merged_into  — surviving branch id; present only for "dedup" entries
      *
      * The format is compatible with cdboost's log::emit() field names so that
      * tooling (cadmia-explorer, jq pipelines) can process logs from all three
@@ -112,6 +113,9 @@ namespace cadmia::log {
 
         if (e.output.has_value())
             line += std::format(R"(,"output":"{}")", detail::escape_json(*e.output));
+
+        if (e.merged_into.has_value())
+            line += std::format(R"(,"merged_into":"{}")", detail::escape_json(*e.merged_into));
 
         line += '}';
         return line;
