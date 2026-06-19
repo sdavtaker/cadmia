@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-06-19
+
+### Fixed
+- `RootCoordinator::simulate()` dedup loop: `head_id` was a reference into the deque.
+  `std::deque::erase()` from the middle invalidates **all** references and iterators;
+  reading `head_id` after `queue.erase(it)` was heap-use-after-free, manifesting as
+  `std::bad_alloc` / `std::length_error` in float/double simulations with dedup active.
+  Fixed by copying `head_id` and the erased entry's fields before calling `erase`.
+- `RootCoordinator::simulate()` branching loop: branch IDs were constructed by
+  concatenating the parent's id with a per-branch index (`parent + "." + i`), growing
+  O(depth) in length and causing O(N²) string allocations over long runs. Fixed by using
+  a monotonic `uint64_t` counter, keeping every id O(log branches) in length.
+
 ## [0.4.3] - 2026-06-19
 
 ### Added
