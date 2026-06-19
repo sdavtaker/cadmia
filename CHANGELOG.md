@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-06-19
+
+### Added
+- `interval<T>::operator==` — structural equality (same lower, upper, closure flags)
+- `IADEVSEngine<T>::engine_equals()` — pure-virtual structural equality check;
+  implemented by `simulator<M>` (compares `state_`, `t_last_`, `t_next_`) and
+  `coordinator<T>` (recurses over child engines by name)
+- `LogEntry<T>::merged_into` — optional field set only for `kind="dedup"` entries,
+  carrying the branch id that subsumes the deduplicated branch's future
+- `to_ndjson`: emits `merged_into` when present
+
+### Changed
+- `RootCoordinator::simulate()`: at each BFS step, scans the queue and erases any
+  entry whose coordinator state is identical to the head, emitting a `"dedup"`
+  `LogEntry` recording the merge. Prevents exponential branch blowup when multiple
+  simulation paths converge to the same state (e.g. two uncoupled generators with
+  the same interval period).
+
 ## [0.4.2] - 2026-06-07
 
 ### Fixed
