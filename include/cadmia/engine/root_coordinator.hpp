@@ -105,6 +105,19 @@ namespace cadmia::engine {
                 if (total_steps >= max_steps)
                     break;
 
+                // Deduplicate: remove later entries whose coordinator state is identical
+                // to the head. Two branches with the same state have deterministic,
+                // identical futures — keeping both is redundant work.
+                if (queue.size() > 1) {
+                    const auto &head = *queue.front().coordinator;
+                    for (auto it = std::next(queue.begin()); it != queue.end();) {
+                        if (head.engine_equals(*it->coordinator))
+                            it = queue.erase(it);
+                        else
+                            ++it;
+                    }
+                }
+
                 // Passive — discard
                 if (queue.front().coordinator->t_next().is_empty()) {
                     queue.pop_front();

@@ -139,6 +139,24 @@ namespace cadmia::engine {
             return c;
         }
 
+        [[nodiscard]] bool engine_equals(const IADEVSEngine<T> &other) const override {
+            const auto *o = dynamic_cast<const coordinator<T> *>(&other);
+            if (!o)
+                return false;
+            if (engines_.size() != o->engines_.size())
+                return false;
+            if (!(t_next_ == o->t_next_) || !(t_last_ == o->t_last_))
+                return false;
+            for (const auto &[name, eng] : engines_) {
+                auto it = o->engines_.find(name);
+                if (it == o->engines_.end())
+                    return false;
+                if (!eng->engine_equals(*it->second))
+                    return false;
+            }
+            return true;
+        }
+
         // ── Coordinator-specific public interface ──────────────────────────────
 
         [[nodiscard]] std::vector<BranchAction<T>> compute_branches(const time_i_t &t) const {
