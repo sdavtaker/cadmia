@@ -31,6 +31,7 @@
 #include <cadmia/modeling/coupled.hpp>
 
 #include <any>
+#include <cstdint>
 #include <deque>
 #include <memory>
 #include <optional>
@@ -100,7 +101,8 @@ namespace cadmia::engine {
             queue.push_back({"0", std::move(root_coord), std::nullopt, 0});
 
             std::vector<log_t> log;
-            int total_steps = 0;
+            int total_steps         = 0;
+            uint64_t next_branch_id = 1; // monotonic counter; "0" is the root
 
             while (!queue.empty()) {
                 if (total_steps >= max_steps)
@@ -112,21 +114,27 @@ namespace cadmia::engine {
                 // Emit a "dedup" log entry for each removed branch so the causality
                 // graph records that its future is subsumed by the surviving branch.
                 if (queue.size() > 1) {
-                    const auto &head    = *queue.front().coordinator;
-                    const auto &head_id = queue.front().branch_id;
-                    const auto head_t   = head.t_next();
+                    const auto &head = *queue.front().coordinator;
+                    const std::string head_id =
+                        queue.front().branch_id; // copy — erase invalidates refs
+                    const auto head_t = head.t_next();
                     for (auto it = std::next(queue.begin()); it != queue.end();) {
                         if (head.engine_equals(*it->coordinator)) {
-                            log.push_back(log_t{.step          = it->step,
-                                                .branch        = it->branch_id,
+                            // Copy fields before erase: deque::erase from middle invalidates all
+                            // refs
+                            auto step_copy   = it->step;
+                            auto branch_copy = it->branch_id;
+                            auto parent_copy = it->parent_branch_id;
+                            it               = queue.erase(it);
+                            log.push_back(log_t{.step          = step_copy,
+                                                .branch        = std::move(branch_copy),
                                                 .kind          = "dedup",
-                                                .parent_branch = it->parent_branch_id,
+                                                .parent_branch = std::move(parent_copy),
                                                 .time          = interval_str(head_t),
                                                 .component     = "",
                                                 .output        = std::nullopt,
                                                 .raw_output    = std::nullopt,
                                                 .merged_into   = head_id});
-                            it = queue.erase(it);
                         } else {
                             ++it;
                         }
@@ -191,7 +199,7 @@ namespace cadmia::engine {
                         auto [comp_out, _2] = clone_ptr->execute_branch(action);
                         ++total_steps;
 
-                        const std::string new_id = original.branch_id + "." + std::to_string(i);
+                        const std::string new_id = std::to_string(next_branch_id++);
                         log.push_back(make_entry(original.step, new_id,
                                                  std::optional<std::string>{original.branch_id},
                                                  action, comp_out, *clone_ptr));
