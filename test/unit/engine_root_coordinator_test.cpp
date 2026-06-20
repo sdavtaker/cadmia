@@ -68,6 +68,18 @@ TEST_CASE("RootCoordinator simulate single gen produces log entries", "[root_coo
     }
 }
 
+TEST_CASE("RootCoordinator log entry output is formatted interval string", "[root_coordinator]") {
+    RootCoordinator<T> rc;
+    auto model = single_gen_model();
+    auto log   = rc.simulate(model, zero_i(), /*max_steps=*/1);
+
+    REQUIRE_FALSE(log.empty());
+    const auto &e = log.front();
+    // generator outputs interval<double>::closed(1.997, 2.003)
+    REQUIRE(e.output.has_value());
+    CHECK(*e.output == "[1.997, 2.003]");
+}
+
 TEST_CASE("dual-gen coordinator compute_branches returns 2 at step 1", "[root_coordinator]") {
     auto model  = dual_gen_model();
     auto shared = std::make_shared<const CoupledModel<T>>(model);

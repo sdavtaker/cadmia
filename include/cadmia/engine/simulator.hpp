@@ -35,7 +35,10 @@
 #include <concepts>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
+#include <string>
+#include <utility>
 
 namespace cadmia::engine {
 
@@ -182,11 +185,14 @@ namespace cadmia::engine {
             }
         }
 
-        [[nodiscard]] std::optional<std::any> engine_star(const time_i_t &t) override {
+        [[nodiscard]] std::pair<std::optional<std::string>, std::optional<std::any>>
+        engine_star(const time_i_t &t) override {
             auto result = star(t);
             if (!result.has_value())
-                return std::nullopt;
-            return std::any{std::move(*result)};
+                return {std::nullopt, std::nullopt};
+            std::ostringstream oss;
+            oss << *result;
+            return {oss.str(), std::any{std::move(*result)}};
         }
 
         void engine_x(std::any x_val, const time_i_t &t) override {

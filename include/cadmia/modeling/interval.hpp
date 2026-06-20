@@ -30,6 +30,8 @@
 #include <cfenv>
 #include <concepts>
 #include <limits>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <type_traits>
 
@@ -262,5 +264,26 @@ namespace cadmia::modeling {
             return r;
         }
     };
+
+} // namespace cadmia::modeling
+
+namespace cadmia::modeling {
+
+    template <typename T>
+        requires requires(std::ostream &os, const T &v) { os << v; }
+    std::ostream &operator<<(std::ostream &os, const interval<T> &iv) {
+        os << (iv.lower_closed ? '[' : '(');
+        if (iv.is_lower_infinite())
+            os << "-inf";
+        else
+            os << iv.lower;
+        os << ", ";
+        if (iv.is_upper_infinite())
+            os << "+inf";
+        else
+            os << iv.upper;
+        os << (iv.upper_closed ? ']' : ')');
+        return os;
+    }
 
 } // namespace cadmia::modeling
