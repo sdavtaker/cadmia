@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-06-19
+
+### Added
+- `operator<<` for `interval<T>` (requires `operator<<` on element type T), enabling
+  formatted string output of any interval.
+
+### Fixed
+- `LogEntry::output` was always the literal string `"<output>"` for any component that
+  produced output. Output is now formatted as the actual interval string (e.g.
+  `"[1.997, 2.003]"`) using `operator<<` on the concrete output type in
+  `Simulator::engine_star`, before the type is erased to `std::any`.
+
 ## [0.4.4] - 2026-06-19
 
 ### Fixed
