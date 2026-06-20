@@ -157,13 +157,13 @@ namespace cadmia::engine {
 
                 if (actions.size() == 1) {
                     // No branching — execute in place
-                    auto &branch       = queue.front();
-                    const auto &action = actions[0];
-                    auto [comp_out, _] = branch.coordinator->execute_branch(action);
+                    auto &branch                = queue.front();
+                    const auto &action          = actions[0];
+                    auto [out_str, comp_out, _] = branch.coordinator->execute_branch(action);
                     ++total_steps;
 
                     log.push_back(make_entry(branch.step, branch.branch_id, branch.parent_branch_id,
-                                             action, comp_out, *branch.coordinator));
+                                             action, out_str, comp_out, *branch.coordinator));
 
                     branch.step += 1;
 
@@ -196,13 +196,13 @@ namespace cadmia::engine {
                         clone_eng.release();
                         auto clone_ptr = std::unique_ptr<coord_t>(clone);
 
-                        auto [comp_out, _2] = clone_ptr->execute_branch(action);
+                        auto [out_str2, comp_out, _2] = clone_ptr->execute_branch(action);
                         ++total_steps;
 
                         const std::string new_id = std::to_string(next_branch_id++);
                         log.push_back(make_entry(original.step, new_id,
                                                  std::optional<std::string>{original.branch_id},
-                                                 action, comp_out, *clone_ptr));
+                                                 action, out_str2, comp_out, *clone_ptr));
 
                         if (!clone_ptr->t_next().is_empty()) {
                             queue.push_back(Branch{new_id, std::move(clone_ptr),
@@ -236,6 +236,7 @@ namespace cadmia::engine {
 
         log_t make_entry(int step, const std::string &branch_id,
                          const std::optional<std::string> &parent_id, const BranchAction<T> &action,
+                         const std::optional<std::string> &out_str,
                          const std::optional<std::any> &comp_out, const coord_t &coord) {
             std::string kind;
             if (action.engine_name.empty()) {
@@ -252,7 +253,7 @@ namespace cadmia::engine {
                 .parent_branch = parent_id,
                 .time          = interval_str(action.limit),
                 .component     = action.engine_name,
-                .output        = comp_out ? std::optional<std::string>{"<output>"} : std::nullopt,
+                .output        = out_str,
                 .raw_output    = comp_out,
                 .merged_into   = std::nullopt,
             };

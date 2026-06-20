@@ -33,6 +33,8 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <string>
+#include <utility>
 
 namespace cadmia::engine {
 
@@ -89,9 +91,12 @@ namespace cadmia::engine {
 
         /**
          * Type-erased *-function (Algorithm 1/2).
-         * Returns the output interval wrapped in std::any, or std::nullopt if passive.
+         * Returns {formatted_output_string, output_interval_as_any}, or {nullopt, nullopt}
+         * if passive. The string is formatted while the output type is still concrete,
+         * so callers never need to downcast std::any to produce a log entry.
          */
-        [[nodiscard]] virtual std::optional<std::any> engine_star(const time_i_t &t) = 0;
+        [[nodiscard]] virtual std::pair<std::optional<std::string>, std::optional<std::any>>
+        engine_star(const time_i_t &t) = 0;
 
         /**
          * Type-erased x-function (Algorithm 1/2).

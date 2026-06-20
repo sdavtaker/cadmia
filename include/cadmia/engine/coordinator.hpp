@@ -105,18 +105,19 @@ namespace cadmia::engine {
             return t_last_;
         }
 
-        [[nodiscard]] std::optional<std::any> engine_star(const time_i_t &t) override {
+        [[nodiscard]] std::pair<std::optional<std::string>, std::optional<std::any>>
+        engine_star(const time_i_t &t) override {
             auto actions = compute_branches(t);
             if (actions.empty())
-                return std::nullopt;
+                return {std::nullopt, std::nullopt};
             for (auto &action : actions) {
                 if (!action.engine_name.empty()) {
-                    auto [_, eoc_y] = execute_branch(action);
-                    return eoc_y;
+                    auto [out_str, _comp, eoc_y] = execute_branch(action);
+                    return {out_str, eoc_y};
                 }
             }
-            auto [_, eoc_y] = execute_branch(actions[0]);
-            return eoc_y;
+            auto [out_str, _comp, eoc_y] = execute_branch(actions[0]);
+            return {out_str, eoc_y};
         }
 
         void engine_x(std::any x_val, const time_i_t &t) override {
@@ -247,7 +248,7 @@ namespace cadmia::engine {
             return branches;
         }
 
-        std::pair<std::optional<std::any>, std::optional<std::any>>
+        std::tuple<std::optional<std::string>, std::optional<std::any>, std::optional<std::any>>
         execute_branch(const BranchAction<T> &action) {
             if (!action.defer_engine.empty()) {
                 engines_.at(action.defer_engine)->advance_t_next_past_limit(action.limit);
@@ -258,7 +259,7 @@ namespace cadmia::engine {
             if (action.engine_name.empty()) {
                 subtract_limit(action.limit);
                 bound_ts();
-                return {std::nullopt, std::nullopt};
+                return {std::nullopt, std::nullopt, std::nullopt};
             }
             auto result = route(action.engine_name, action.limit);
             bound_ts();
@@ -367,13 +368,13 @@ namespace cadmia::engine {
                 eng->advance_t_next_past_limit(limit);
         }
 
-        std::pair<std::optional<std::any>, std::optional<std::any>>
+        std::tuple<std::optional<std::string>, std::optional<std::any>, std::optional<std::any>>
         route(const std::string &engine_name, const time_i_t &t) {
-            auto &eng    = engines_.at(engine_name);
-            auto maybe_y = eng->engine_star(t);
+            auto &eng               = engines_.at(engine_name);
+            auto [out_str, maybe_y] = eng->engine_star(t);
 
             if (!maybe_y)
-                return {std::nullopt, std::nullopt};
+                return {std::nullopt, std::nullopt, std::nullopt};
             const auto &y = *maybe_y;
 
             const auto &dests_it = influenced_by_.find(engine_name);
@@ -388,10 +389,10 @@ namespace cadmia::engine {
             if (eoc_sources != model_->influencers().end() &&
                 eoc_sources->second.contains(engine_name)) {
                 const auto &z_eoc = model_->translation(engine_name, "self");
-                return {y, z_eoc(y)};
+                return {out_str, y, z_eoc(y)};
             }
 
-            return {y, std::nullopt};
+            return {out_str, y, std::nullopt};
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────
